@@ -1,0 +1,58 @@
+{
+  "version": 0,
+  "offset": 0,
+  "schema": [
+    {
+      "name": "records",
+      "namespace": "autopass",
+      "id": 0,
+      "type": 1,
+      "indexes": [],
+      "schema": "@autopass/records",
+      "derived": false,
+      "key": [
+        "key"
+      ],
+      "trigger": null
+    },
+    {
+      "name": "invite",
+      "namespace": "autopass",
+      "id": 1,
+      "type": 1,
+      "indexes": [],
+      "schema": "@autopass/invite",
+      "derived": false,
+      "key": [
+        "id"
+      ],
+      "trigger": null
+    },
+    {
+      "name": "writer",
+      "namespace": "autopass",
+      "id": 2,
+      "type": 1,
+      "indexes": [],
+      "schema": "@autopass/writer",
+      "derived": false,
+      "key": [
+        "key"
+      ],
+      "trigger": null
+    },
+    {
+      "name": "delete",
+      "namespace": "autopass",
+      "id": 3,
+      "type": 1,
+      "indexes": [],
+      "schema": "@autopass/delete",
+      "derived": false,
+      "key": [
+        "key"
+      ],
+      "trigger": null
+    }
+  ]
+}

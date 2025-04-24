@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "schema": [
+    {
+      "id": 0,
+      "name": "@autopass/remove-writer",
+      "requestType": "@autopass/writer",
+      "version": 1
+    },
+    {
+      "id": 1,
+      "name": "@autopass/add-writer",
+      "requestType": "@autopass/writer",
+      "version": 1
+    },
+    {
+      "id": 2,
+      "name": "@autopass/put",
+      "requestType": "@autopass/records",
+      "version": 1
+    },
+    {
+      "id": 3,
+      "name": "@autopass/del",
+      "requestType": "@autopass/delete",
+      "version": 1
+    },
+    {
+      "id": 4,
+      "name": "@autopass/add-invite",
+      "requestType": "@autopass/invite",
+      "version": 1
+    }
+  ]
+}
