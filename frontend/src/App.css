@@ -65,6 +65,9 @@ nav {
   border-radius: 7px;
 }
 
+input {
+  background-color: #ebebeb;
+}
 input:focus {
   outline: 1px;
 }
@@ -89,4 +92,33 @@ a {
 
 .hide {
   display: none !important;
+}
+
+/* Hide scrollbar but still scrollable */
+.scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+}
+
+/* Scrollbar Track */
+::-webkit-scrollbar {
+  width: 4px; /* vertical scrollbar */
+  height: 4px; /* horizontal scrollbar */
+}
+
+/* Scrollbar Track */
+::-webkit-scrollbar-track {
+  background: #ebebeb;
+  border-radius: 10px;
+}
+
+/* Scrollbar Thumb */
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+/* Scrollbar Thumb on Hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
 }

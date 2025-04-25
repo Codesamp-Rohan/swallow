@@ -14,6 +14,7 @@
     "autopass": "^2.1.0",
     "corestore": "^7.4.1",
     "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
     "express": "^5.1.0"
   }
 }

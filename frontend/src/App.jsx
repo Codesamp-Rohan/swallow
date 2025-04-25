@@ -6,20 +6,18 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [selectedPort, setSelectedPort] = useState(5173);
+  const [username, setUsername] = useState(
+    localStorage.getItem("username") || ""
+  );
 
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [authForm, setAuthForm] = useState({ name: "", password: "" });
 
   useEffect(() => {
     const body = document.body;
-    if (showLogin || showSignup) {
-      body.style.overflow = "hidden";
-    } else {
-      body.style.overflow = "";
-    }
-    return () => {
-      body.style.overflow = "";
-    };
+    body.style.overflow = showLogin || showSignup ? "hidden" : "";
+    return () => (body.style.overflow = "");
   }, [showLogin, showSignup]);
 
   useEffect(() => {
@@ -49,7 +47,7 @@ function App() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ text: input.trim() }),
+      body: JSON.stringify({ text: input.trim(), username: username }),
     });
     setMessages([...messages, { text: input.trim(), timestamp: Date.now() }]);
     setInput("");
@@ -59,6 +57,37 @@ function App() {
     if (e.key === "Enter") handleSend();
   };
 
+  const handleAuth = async (type) => {
+    const endpoint = type === "signup" ? "/signup" : "/login";
+
+    try {
+      const response = await fetch(
+        `http://localhost:${selectedPort}${endpoint}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: authForm.name,
+            password: authForm.password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem("username", authForm.name);
+        setUsername(authForm.name);
+        setShowLogin(false);
+        setShowSignup(false);
+        setAuthForm({ name: "", password: "" });
+      } else {
+        alert(data.error || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("Auth error:", error);
+    }
+  };
+
   return (
     <>
       <nav className="w-full mt-[1rem] mb-[1rem] flex justify-between">
@@ -66,138 +95,116 @@ function App() {
           <img src={logo} className="w-[40px] h-[40px]" />
           <p className="font-bold">Swallow</p>
         </div>
-        <div className="flex gap-[1rem] text-[12px]">
-          <button
-            onClick={() => {
-              setShowLogin(true);
-              setShowSignup(false);
-            }}
-            id="logInBtn"
-            className="px-2 py-1 bg-[#ddd] border-1 border-[#ccc] rounded-[5px] font-bold"
-          >
-            Log In
-          </button>
-          <button
-            id="signUpBtn"
-            onClick={() => {
-              setShowSignup(true);
-              setShowLogin(false);
-            }}
-            className="px-2 py-1 bg-[#242424] border-1 border-[#000] text-[#ddd] rounded-[5px] font-bold"
-          >
-            Sign Up
-          </button>
-        </div>
+        {!username ? (
+          <div className="flex gap-2 text-sm">
+            <button
+              onClick={() => {
+                setShowLogin(true);
+                setShowSignup(false);
+              }}
+              className="px-2 py-1 bg-[#ddd] border border-[#ccc] rounded font-bold"
+            >
+              Log In
+            </button>
+            <button
+              onClick={() => {
+                setShowSignup(true);
+                setShowLogin(false);
+              }}
+              className="px-2 py-1 bg-[#242424] border border-black text-white rounded font-bold"
+            >
+              Sign Up
+            </button>
+          </div>
+        ) : (
+          <div className="text-sm font-bold">👋 Hello, {username}</div>
+        )}
       </nav>
 
-      {(showLogin || showSignup) && <div className="overflow"></div>}
-
-      {showLogin && (
-        <div id="logInPopUp" className="text-[12px]">
-          <span className="flex flex-col">
-            <h1 className="text-[16px] font-bold">Log In</h1>
-            <p>Enter your name and password to login</p>
-          </span>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
-              <label>Enter the Name</label>
-              <input
-                type="text"
-                name="name"
-                id="login--name"
-                placeholder="Enter the name"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label>Enter the Name</label>
-              <input
-                type="password"
-                name="name"
-                id="login--password"
-                placeholder="Enter the password"
-              />
-            </div>
-            <div className="flex gap-[1rem] text-[12px]">
-              <button
-                onClick={() => setShowLogin(false)}
-                className="px-2 py-1 bg-[#ddd] border-1 border-[#ccc] rounded-[5px] font-bold w-full cancelBtn"
-              >
-                cancel
-              </button>
-              <button
-                id="signUpBtn"
-                className="px-2 py-1 bg-[#242424] border-1 border-[#000] text-[#ddd] rounded-[5px] font-bold w-full"
-              >
-                Log In
-              </button>
-            </div>
-            <p className="text-[#777]">
-              Do not have an account?{" "}
-              <a
-                onClick={() => {
-                  setShowSignup(true);
-                  setShowLogin(false);
-                }}
-                id="signUpToggleBtn"
-                className="underline text-[#000] font-bold"
-              >
-                Sign Up
-              </a>
-            </p>
-          </div>
-        </div>
+      {(showLogin || showSignup) && (
+        <div
+          onClick={() => {
+            setShowLogin(false);
+            setShowSignup(false);
+          }}
+          className="overflow"
+        ></div>
       )}
-      {showSignup && (
-        <div id="signUpPopUp" className="text-[12px] hide">
-          <span className="flex flex-col">
-            <h1 className="text-[16px] font-bold">Sign Up</h1>
-            <p>Enter your name and password to signup</p>
-          </span>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
-              <label>Enter the Name</label>
-              <input
-                type="text"
-                name="name"
-                id="login--name"
-                placeholder="Enter the name"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label>Enter the Password</label>
-              <input
-                type="password"
-                name="name"
-                id="login--password"
-                placeholder="Enter the password"
-              />
-            </div>
-            <div className="flex gap-[1rem] text-[12px]">
+
+      {(showLogin || showSignup) && (
+        <div id={showLogin ? "logInPopUp" : "signUpPopUp"} className="text-sm">
+          <h1 className="text-lg font-bold">
+            {showLogin ? "Log In" : "Sign Up"}
+          </h1>
+          <p>
+            {showLogin
+              ? "Enter your name and password to login"
+              : "Create your account"}
+          </p>
+          <div className="flex flex-col gap-3 mt-3">
+            <input
+              type="text"
+              placeholder="Name"
+              value={authForm.name}
+              onChange={(e) =>
+                setAuthForm({ ...authForm, name: e.target.value })
+              }
+              className="border p-1 rounded"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={authForm.password}
+              onChange={(e) =>
+                setAuthForm({ ...authForm, password: e.target.value })
+              }
+              className="border p-1 rounded"
+            />
+            <div className="flex gap-2">
               <button
-                onClick={() => setShowSignup(false)}
-                className="px-2 py-1 bg-[#ddd] border-1 border-[#ccc] rounded-[5px] font-bold w-full cancelBtn"
-              >
-                cancel
-              </button>
-              <button
-                id="signUpBtn"
-                className="px-2 py-1 bg-[#242424] border-1 border-[#000] text-[#ddd] rounded-[5px] font-bold w-full"
-              >
-                Sign Up
-              </button>
-            </div>
-            <p className="text-[#777]">
-              Already have an account?{" "}
-              <a
                 onClick={() => {
-                  setShowLogin(true);
+                  setShowLogin(false);
                   setShowSignup(false);
                 }}
-                id="logInToggleBtn"
-                className="underline text-[#000] font-bold"
+                className="flex-1 bg-[#ddd] border border-[#ccc] rounded font-bold"
               >
-                Log In
-              </a>
+                Cancel
+              </button>
+              <button
+                onClick={() => handleAuth(showLogin ? "login" : "signup")}
+                className="flex-1 bg-[#242424] border border-[#000] text-white rounded font-bold"
+              >
+                {showLogin ? "Log In" : "Sign Up"}
+              </button>
+            </div>
+            <p className="text-gray-600">
+              {showLogin ? (
+                <>
+                  Don’t have an account?{" "}
+                  <span
+                    className="underline font-bold cursor-pointer"
+                    onClick={() => {
+                      setShowLogin(false);
+                      setShowSignup(true);
+                    }}
+                  >
+                    Sign Up
+                  </span>
+                </>
+              ) : (
+                <>
+                  Already have an account?{" "}
+                  <span
+                    className="underline font-bold cursor-pointer"
+                    onClick={() => {
+                      setShowSignup(false);
+                      setShowLogin(true);
+                    }}
+                  >
+                    Log In
+                  </span>
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -208,19 +215,27 @@ function App() {
           <div className="gradient absolute top-0 w-[100%] h-[80px] left-0 z-10 pointer-none:"></div>
           <div
             id="text--area"
-            className="w-full h-full border-0 border-[#ccc] rounded-[24px] flex flex-col gap-1 overflow-y-scroll relative pt-[3rem] pb-[3rem]"
+            className="w-full h-full border-0 border-[#ccc] rounded-[24px] flex flex-col gap-1 overflow-y-scroll relative py-[3rem] pr-4"
           >
-            {messages.length == 0 ? (
+            {!username ? (
+              <p>Please login or signup before seeing or entering a chat 😁</p>
+            ) : messages.length == 0 ? (
               <p className="text-center">No messagess yet.</p>
             ) : (
               messages.map((msg, idx) => (
-                <p
+                <div
                   key={idx}
-                  id={msg.timestamp}
-                  className="mb-2 bg-[#ebebeb] border-1 border-[#ccc] inline-block px-4 py-1 rounded-xl rounded-bl-[0] w-fit max-w-[70%]"
+                  className={`mb-2 px-4 py-1 max-w-[70%] bg-[#ebebeb] rounded-xl border-1 border-[#bbb] text-[#444] text-[12px] ${
+                    msg.username === username
+                      ? "ml-auto text-right rounded-br-none"
+                      : "mr-auto text-left rounded-bl-none"
+                  }`}
                 >
+                  <strong className="block text-xs text-[#666] mb-[2px]">
+                    {msg.username}
+                  </strong>
                   {msg.text}
-                </p>
+                </div>
               ))
             )}
           </div>
