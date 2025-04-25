@@ -40,3 +40,53 @@ nav {
   background: #fff;
   background: linear-gradient(180deg, #ebebeb 0%, #ebebeb00 100%);
 }
+
+/* PopUp */
+#logInPopUp,
+#signUpPopUp {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30%;
+  height: 100%;
+  padding: 1rem;
+  z-index: 999;
+  border: 1px solid #ba9090;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background-color: #ebebeb;
+}
+
+#logInPopUp input,
+#signUpPopUp input {
+  padding: 3px 7px;
+  border: 1px solid #ccc;
+  border-radius: 7px;
+}
+
+input:focus {
+  outline: 1px;
+}
+button {
+  cursor: pointer;
+}
+
+.overflow {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 990;
+  background-color: #0000004d;
+  backdrop-filter: blur(10px);
+}
+
+a {
+  cursor: pointer;
+}
+
+.hide {
+  display: none !important;
+}

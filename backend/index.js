@@ -7,7 +7,7 @@ const Hypercore = require("hypercore");
 const app = express();
 const PORT = 5173;
 
-const corestore = new Corestore("messages");
+const corestore = new Corestore("hypercoreDB");
 const messageCore = corestore.get({
   name: "messages-feed",
   valueEncoding: "json",
