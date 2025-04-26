@@ -19,6 +19,14 @@ body {
   padding-block: 0;
 }
 
+main {
+  outline: none;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .metal-regular {
   font-family: "Metal", serif;
   font-weight: 400;
@@ -29,6 +37,7 @@ nav {
   display: flex;
   flex-direction: row;
   align-items: center;
+  padding-inline: 12px;
 }
 
 #text--area {
@@ -121,4 +130,28 @@ a {
 /* Scrollbar Thumb on Hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #bbb;
+}
+
+@media screen and (max-width: 1076px) {
+  body {
+    padding-inline: 4px;
+    height: 90vh;
+  }
+  main {
+    height: 100%;
+  }
+  #text--area {
+    height: 75vh;
+    padding-inline: 12px;
+  }
+  /* .message {
+    border: 0.5px solid #bbb;
+  } */
+  .writeMsgInput {
+    padding-inline: 12px;
+  }
+  #logInPopUp,
+  #signUpPopUp {
+    width: 70%;
+  }
 }
