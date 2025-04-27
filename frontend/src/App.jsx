@@ -254,7 +254,7 @@ function App() {
           <div className="gradient absolute top-0 w-[100%] h-[80px] left-0 z-10 pointer-events-none"></div>
           <div
             id="text--area"
-            className="w-full h-full border-0 border-[#ccc] rounded-[24px] flex flex-col gap-1 overflow-y-scroll relative py-[3rem] pr-4"
+            className="w-full h-full border-0 border-[#ccc] rounded-[24px] flex flex-col gap-1 overflow-y-scroll relative pt-[3rem] pb-[4rem] pr-4"
           >
             {!username ? (
               <p>Please login or signup before seeing or entering a chat 😁</p>
@@ -292,8 +292,14 @@ function App() {
                     )}
                     <div className="w-fit relative group">
                       <p
-                        className={`px-4 w-fit py-1 rounded-lg border-[1px] border-[#ddd] flex flex-row gap-2 ${
-                          showUsername ? "rounded-tl-none" : ""
+                        className={`singleMessage px-4 w-fit py-1 rounded-lg border-[1px] border-[#ddd] flex flex-row gap-2 ${
+                          msg.username === username
+                            ? `bg-gradient-to-r from-[#5868d2] to-[#0044ff] text-[#ddd] ${
+                                showUsername ? "rounded-tr-none" : ""
+                              }`
+                            : `${
+                                showUsername ? "rounded-tl-none" : ""
+                              } bg-[#ececec]`
                         }`}
                       >
                         {msg.text}
