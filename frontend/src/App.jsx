@@ -17,6 +17,9 @@ function App() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeDropdownIdx, setActiveDropdownIdx] = useState(null);
 
+  const [editingIdx, setEditingIdx] = useState(null);
+  const [editingText, setEditingText] = useState("");
+
   function timeAgo(timestamp) {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -49,16 +52,25 @@ function App() {
   }, [selectedPort]);
 
   const handleSend = async () => {
-    if (input.trim() == "") return;
-    await fetch(`http://localhost:${selectedPort}/message`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ text: input.trim(), username: username }),
-    });
-    setMessages([...messages, { text: input.trim(), timestamp: Date.now() }]);
-    setInput("");
+    if (input.trim() === "") return;
+
+    try {
+      await fetch(`http://localhost:${selectedPort}/message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: input.trim(), username: username }),
+      });
+
+      // Re-fetch messages after sending
+      const response = await fetch(`http://localhost:${selectedPort}/messages`);
+      const data = await response.json();
+      setMessages(data);
+      setInput("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -93,6 +105,21 @@ function App() {
       }
     } catch (error) {
       console.error("Auth error:", error);
+    }
+  };
+
+  const handleDelete = async (timestamp, idx) => {
+    try {
+      await fetch(`http://localhost:${selectedPort}/message/${timestamp}`, {
+        method: "DELETE",
+      });
+
+      // Update frontend
+      const updatedMessages = [...messages];
+      updatedMessages.splice(idx, 1);
+      setMessages(updatedMessages);
+    } catch (error) {
+      console.error("Error deleting message:", error);
     }
   };
 
@@ -291,22 +318,68 @@ function App() {
                       </strong>
                     )}
                     <div className="w-fit relative group">
-                      <p
-                        className={`singleMessage px-4 w-fit py-1 rounded-lg border-[1px] border-[#ddd] flex flex-row gap-2 ${
-                          msg.username === username
-                            ? `bg-gradient-to-r from-[#5868d2] to-[#0044ff] text-[#ddd] ${
-                                showUsername ? "rounded-tr-none" : ""
-                              }`
-                            : `${
-                                showUsername ? "rounded-tl-none" : ""
-                              } bg-[#ececec]`
-                        }`}
-                      >
-                        {msg.text}
-                        <span className="text-[10px] whitespace-nowrap font-bold text-[#bbb]">
-                          {timeAgo(msg.timestamp)}
-                        </span>
-                      </p>
+                      {editingIdx === idx ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            className="border p-1 rounded text-black text-sm"
+                          />
+                          <button
+                            onClick={async () => {
+                              // Update in backend
+                              await fetch(
+                                `http://localhost:${selectedPort}/message/${msg.timestamp}`,
+                                {
+                                  method: "PUT",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({ text: editingText }),
+                                }
+                              );
+
+                              const updatedMessages = [...messages];
+                              updatedMessages[idx].text = editingText;
+                              setMessages(updatedMessages);
+
+                              setEditingIdx(null);
+                              setEditingText("");
+                            }}
+                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingIdx(null);
+                              setEditingText("");
+                            }}
+                            className="px-2 py-1 bg-gray-400 text-white text-xs rounded"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <p
+                          id={msg.timestamp}
+                          className={`singleMessage px-4 w-fit py-1 rounded-lg border-[1px] border-[#ddd] flex flex-row gap-2 ${
+                            msg.username === username
+                              ? `bg-gradient-to-r from-[#566bf3] to-[#0044ff] text-[#ddd] ${
+                                  showUsername ? "rounded-tr-none" : ""
+                                }`
+                              : `${
+                                  showUsername ? "rounded-tl-none" : ""
+                                } bg-[#ececec]`
+                          }`}
+                        >
+                          {msg.text}
+                          <span className="text-[10px] whitespace-nowrap font-bold text-[#bbb]">
+                            {timeAgo(msg.timestamp)}
+                          </span>
+                        </p>
+                      )}
                       {msg.username === username ? (
                         <>
                           <button
@@ -315,7 +388,7 @@ function App() {
                                 activeDropdownIdx === idx ? null : idx
                               )
                             }
-                            className="hidden group-hover:block text-[#000] font-bold absolute top-[50%] right-2 translate-y-[-50%]"
+                            className="md:hidden group-hover:block text-[#fff] font-bold absolute top-[50%] right-2 translate-y-[-50%]"
                           >
                             ...
                           </button>
@@ -324,22 +397,20 @@ function App() {
                             <div className="absolute right-0 mt-2 w-40 rounded-b-md bg-[#ebebeb] border-gray-300 shadow-lg text-sm z-50">
                               <button
                                 onClick={() => {
-                                  alert(`Viewing profile of ${username}`);
+                                  // alert(`Viewing profile of ${username}`);
+                                  setEditingIdx(idx);
+                                  setEditingText(msg.text);
                                   setActiveDropdownIdx(null);
                                 }}
                                 className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md"
                               >
-                                View Profile
+                                Edit
                               </button>
                               <button
-                                onClick={() => {
-                                  localStorage.removeItem("username");
-                                  setUsername("");
-                                  setActiveDropdownIdx(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-[#dbdbdb] rounded-b-md"
+                                onClick={() => handleDelete(msg.timestamp, idx)}
+                                className="px-2 py-1 bg-red-500 text-white text-xs rounded ml-2"
                               >
-                                Logout
+                                Delete
                               </button>
                             </div>
                           )}
