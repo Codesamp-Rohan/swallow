@@ -1,4 +1,6 @@
 import logo from "./assets/logo.png";
+import send from "./assets/send.png";
+import close from "./assets/close.png";
 import "./App.css";
 import { useState, useEffect } from "react";
 
@@ -19,6 +21,7 @@ function App() {
 
   const [editingIdx, setEditingIdx] = useState(null);
   const [editingText, setEditingText] = useState("");
+  const [replyTo, setReplyTo] = useState(null);
 
   function timeAgo(timestamp) {
     const date = new Date(timestamp);
@@ -55,12 +58,25 @@ function App() {
     if (input.trim() === "") return;
 
     try {
+      // If there's a reply, include the replied message's username, text, and timestamp
+      const repliedMessageDetails = replyTo
+        ? {
+            username: replyTo.username,
+            text: replyTo.text,
+            timestamp: replyTo.timestamp,
+          }
+        : null;
+
       await fetch(`http://localhost:${selectedPort}/message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: input.trim(), username: username }),
+        body: JSON.stringify({
+          text: input.trim(),
+          username: username,
+          repliedTo: repliedMessageDetails,
+        }),
       });
 
       // Re-fetch messages after sending
@@ -68,13 +84,17 @@ function App() {
       const data = await response.json();
       setMessages(data);
       setInput("");
+      setReplyTo(null);
     } catch (error) {
       console.error("Error sending message:", error);
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") handleSend();
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // Prevent newline
+      handleSend();
+    }
   };
 
   const handleAuth = async (type) => {
@@ -281,7 +301,7 @@ function App() {
           <div className="gradient absolute top-0 w-[100%] h-[80px] left-0 z-10 pointer-events-none"></div>
           <div
             id="text--area"
-            className="w-full h-full border-0 border-[#ccc] rounded-[24px] flex flex-col gap-1 overflow-y-scroll relative pt-[3rem] pb-[4rem] pr-4"
+            className="w-full h-full border-0 border-[#ccc] rounded-[24px] flex flex-col overflow-y-scroll relative pt-[3rem] pb-[4rem] pr-4"
           >
             {!username ? (
               <p>Please login or signup before seeing or entering a chat 😁</p>
@@ -317,7 +337,11 @@ function App() {
                         {msg.username}
                       </strong>
                     )}
-                    <div className="w-fit relative group">
+                    <div
+                      className={`md:w-fit relative group flex w-[90vw] ${
+                        msg.username === username ? "justify-end" : ""
+                      }`}
+                    >
                       {editingIdx === idx ? (
                         <div className="flex items-center gap-2">
                           <input
@@ -362,60 +386,97 @@ function App() {
                           </button>
                         </div>
                       ) : (
-                        <p
-                          id={msg.timestamp}
-                          className={`singleMessage px-4 w-fit py-1 rounded-lg border-[1px] border-[#ddd] flex flex-row gap-2 ${
+                        <div
+                          className={`rounded-lg border-[1px] border-[#ddd] ${
                             msg.username === username
-                              ? `bg-gradient-to-r from-[#566bf3] to-[#0044ff] text-[#ddd] ${
-                                  showUsername ? "rounded-tr-none" : ""
-                                }`
-                              : `${
-                                  showUsername ? "rounded-tl-none" : ""
-                                } bg-[#ececec]`
+                              ? "bg-gradient-to-r from-[#566bf3] to-[#0044ff]"
+                              : ""
                           }`}
                         >
-                          {msg.text}
-                          <span className="text-[10px] whitespace-nowrap font-bold text-[#bbb]">
-                            {timeAgo(msg.timestamp)}
-                          </span>
-                        </p>
-                      )}
-                      {msg.username === username ? (
-                        <>
-                          <button
-                            onClick={() =>
-                              setActiveDropdownIdx(
-                                activeDropdownIdx === idx ? null : idx
-                              )
-                            }
-                            className="md:hidden group-hover:block text-[#fff] font-bold absolute top-[50%] right-2 translate-y-[-50%]"
-                          >
-                            ...
-                          </button>
-
-                          {activeDropdownIdx === idx && (
-                            <div className="absolute right-0 mt-2 w-40 rounded-b-md bg-[#ebebeb] border-gray-300 shadow-lg text-sm z-50">
-                              <button
-                                onClick={() => {
-                                  // alert(`Viewing profile of ${username}`);
-                                  setEditingIdx(idx);
-                                  setEditingText(msg.text);
-                                  setActiveDropdownIdx(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleDelete(msg.timestamp, idx)}
-                                className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md text-red-500"
-                              >
-                                Delete
-                              </button>
+                          {msg.repliedTo && (
+                            <div
+                              className={`p-2 text-xs  items-start mb-1 rounded-t-lg flex flex-col ${
+                                msg.username === username
+                                  ? "text-[#ebebeb] bg-[#ffffff28]"
+                                  : "text-[#222] bg-[#00000016]"
+                              }`}
+                            >
+                              <div className="font-bold flex flex-row gap-2 italic w-full text-[10px]">
+                                <p>{msg.repliedTo.username}</p>
+                                {timeAgo(msg.repliedTo.timestamp)}
+                              </div>
+                              {msg.repliedTo.text}
                             </div>
                           )}
-                        </>
-                      ) : null}
+                          <p
+                            id={msg.timestamp}
+                            className={`singleMessage px-2 w-fit py-1 flex flex-row items-end gap-2 whitespace-pre-wrap text-left rounded-md ${
+                              msg.username === username ? `text-[#ddd]` : ""
+                            }`}
+                          >
+                            {msg.text}
+                            <span className="text-[10px] whitespace-nowrap font-bold text-[#bbb]">
+                              {timeAgo(msg.timestamp)}
+                            </span>
+                          </p>
+                        </div>
+                      )}
+                      <>
+                        <button
+                          onClick={() =>
+                            setActiveDropdownIdx(
+                              activeDropdownIdx === idx ? null : idx
+                            )
+                          }
+                          className={`md:hidden group-hover:block font-bold absolute top-0 right-2 ${
+                            msg.username === username
+                              ? "text-[#fff]"
+                              : "text-[#000]"
+                          }`}
+                        >
+                          ...
+                        </button>
+
+                        {activeDropdownIdx === idx && (
+                          <div
+                            className={`absolute mt-8 w-40 rounded-md bg-[#ebebeb] border-gray-300 shadow-lg text-sm z-50 overflow-hidden text-[12px] font-bold ${
+                              msg.username === username
+                                ? "right-0"
+                                : "left-[90%]"
+                            }`}
+                          >
+                            <button
+                              onClick={() => setReplyTo(msg)}
+                              className="block w-full text-left px-4 py-1 hover:bg-[#dbdbdb]"
+                            >
+                              Reply
+                            </button>
+                            {msg.username === username ? (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    // alert(`Viewing profile of ${username}`);
+                                    setEditingIdx(idx);
+                                    setEditingText(msg.text);
+                                    setActiveDropdownIdx(null);
+                                  }}
+                                  className="block w-full text-left px-4 py-1 hover:bg-[#dbdbdb]"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDelete(msg.timestamp, idx)
+                                  }
+                                  className="block w-full text-left px-4 py-1 hover:bg-[#dbdbdb] text-red-500"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            ) : null}
+                          </div>
+                        )}
+                      </>
                     </div>
                   </div>
                 );
@@ -424,23 +485,37 @@ function App() {
           </div>
           <div className="gradient absolute bottom-0 w-[100%] h-[80px] left-0 z-10 rotate-180 pointer-events-none"></div>
         </div>
-        <div className="w-full flex items-center mt-4 writeMsgInput">
-          <input
-            type="text"
+      </main>
+      <div className="fixed z-[999] md:mx-[25%] mx-[2%] md:w-[50%] w-[96%] p-1 bottom-4 left-0 flex flex-col items-center mt-4 border-1 border-[#ccc] bg-[#ebebeb] rounded-[12px] writeMsgInput">
+        {replyTo && (
+          <div className="w-full flex flex-col gap-1 bg-[#e2e2e2] py-2 mb-2 px-4 rounded-[12px] relative">
+            <p className="text-[10px] text-[#777]">
+              <i>Replying to </i>
+              <strong>{replyTo.username}</strong>
+            </p>
+            <p className="text-[14px] text-[#777] font-bold">{replyTo.text}</p>
+            <button
+              onClick={() => setReplyTo(null)}
+              className="absolute right-4 top-4"
+            >
+              <img src={close} className="w-[12px] h-[12px]" />
+            </button>
+          </div>
+        )}
+        <div className="flex w-full rounded-full">
+          <textarea
             placeholder="Type your messages..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-l-full focus:outline-none focus:ring-[0.5px] focus:ring-[#ddd] text-[14px]"
+            className="flex-1 px-4 py-2 focus:outline-none text-[14px] text-[#777] resize-none rounded-[12px] bg-transparent max-h-[150px] overflow-y-auto"
+            rows={1}
           />
-          <button
-            onClick={handleSend}
-            className="px-4 py-2 bg-[#ddd] text-[#444] text-[14px] cursor-pointer  font-semibold border border-gray-300 rounded-r-full hover:bg-[#ccc]"
-          >
-            Send
+          <button onClick={handleSend} className="px-4 py-2 cursor-pointer">
+            <img src={send} className="w-[24px] h-[24px]" />
           </button>
         </div>
-      </main>
+      </div>
     </>
   );
 }

@@ -18,7 +18,6 @@ body {
   margin: 0;
   padding-block: 0;
 }
-
 main {
   outline: none;
   height: 85vh;
@@ -106,7 +105,7 @@ a {
 /* Hide scrollbar but still scrollable */
 .scroll-container {
   scrollbar-width: thin;
-  scrollbar-color: #888 transparent;
+  scrollbar-color: #ccc transparent;
 }
 
 /* Scrollbar Track */
@@ -129,7 +128,9 @@ a {
 
 /* Scrollbar Thumb on Hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #bbb;
+  background: #ddd;
+  width: 4px;
+  height: 4px;
 }
 
 @media screen and (max-width: 1076px) {
@@ -147,11 +148,11 @@ a {
   .message {
     width: 90%;
   }
-  .writeMsgInput {
-    padding-inline: 12px;
-  }
   #logInPopUp,
   #signUpPopUp {
     width: 70%;
+  }
+  .singleMessage {
+    width: fit-content;
   }
 }

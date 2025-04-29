@@ -84,23 +84,41 @@ app.post("/login", (req, res) => {
 
 app.post("/message", (req, res) => {
   try {
-    const { text, username } = req.body;
+    const { text, username, repliedTo } = req.body;
 
+    // Validate message text
     if (!text || text.trim() === "") {
       return res.status(400).send("Message text required");
     }
 
-    if (!username || username.trim() === "")
+    // Validate username
+    if (!username || username.trim() === "") {
       return res.status(400).send("Username required");
+    }
 
+    // If a message is being replied to, validate that the original message exists
+    if (repliedTo) {
+      const messages = readDataFromFile(messagesFilePath);
+      const originalMessageExists = messages.some(
+        (msg) => msg.timestamp === repliedTo.timestamp
+      );
+
+      if (!originalMessageExists) {
+        return res.status(400).send("Invalid repliedTo: message not found");
+      }
+    }
+
+    // Prepare the new message
     const message = {
       username: username.trim(),
       text: text.trim(),
       timestamp: Date.now(),
+      ...(repliedTo && { repliedTo }), // Include repliedTo if it exists
     };
 
     console.log("Saving message:", message);
 
+    // Read existing messages, add the new one, and save back to the file
     const messages = readDataFromFile(messagesFilePath);
     messages.push(message);
     writeDataToFile(messagesFilePath, messages);
@@ -108,7 +126,6 @@ app.post("/message", (req, res) => {
     res.status(200).send("Message saved to file");
   } catch (err) {
     console.error("Error saving message:", err);
-
     res.status(500).send(`Failed to save message: ${err.message}`);
   }
 });
