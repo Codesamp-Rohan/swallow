@@ -408,7 +408,7 @@ function App() {
                               </button>
                               <button
                                 onClick={() => handleDelete(msg.timestamp, idx)}
-                                className="px-2 py-1 bg-red-500 text-white text-xs rounded ml-2"
+                                className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md text-red-500"
                               >
                                 Delete
                               </button>

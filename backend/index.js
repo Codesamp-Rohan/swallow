@@ -156,6 +156,31 @@ app.put("/message/:timestamp", (req, res) => {
   }
 });
 
+app.delete("/message/:timestamp", (req, res) => {
+  try {
+    const { timestamp } = req.params;
+
+    const messages = readDataFromFile(messagesFilePath);
+
+    const messageIndex = messages.findIndex(
+      (msg) => msg.timestamp.toString() === timestamp
+    );
+
+    if (messageIndex === -1) {
+      return res.status(404).send("Message not found.");
+    }
+
+    messages.splice(messageIndex, 1); // ✅ Actually delete the message
+
+    writeDataToFile(messagesFilePath, messages);
+
+    res.status(200).json({ message: "Message deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting message:", error);
+    res.status(500).send("Internal server error");
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
