@@ -17,6 +17,7 @@ body {
   height: 95vh;
   margin: 0;
   padding-block: 0;
+  overflow: hidden;
 }
 #page {
   display: flex;

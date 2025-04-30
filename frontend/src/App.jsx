@@ -63,7 +63,6 @@ function App() {
     if (input.trim() === "") return;
 
     try {
-      // If there's a reply, include the replied message's username, text, and timestamp
       const repliedMessageDetails = replyTo
         ? {
             username: replyTo.username,
@@ -72,25 +71,33 @@ function App() {
           }
         : null;
 
-      await fetch(`http://localhost:${selectedPort}/message`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: input.trim(),
-          username,
-          roomId: selectedRoomId,
-          repliedTo: repliedMessageDetails,
-        }),
-      });
+      await fetch(
+        `http://localhost:${selectedPort}/message/${selectedRoomId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: input.trim(),
+            username,
+            roomId: selectedRoomId,
+            repliedTo: repliedMessageDetails,
+          }),
+        }
+      );
 
-      // Re-fetch messages after sending
-      const response = await fetch(`http://localhost:${selectedPort}/messages`);
-      const data = await response.json();
-      setMessages(data);
       setInput("");
       setReplyTo(null);
+      try {
+        const response = await fetch(
+          `http://localhost:${selectedPort}/messages/${selectedRoomId}`
+        );
+        const data = await response.json();
+        setMessages(data);
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -136,9 +143,12 @@ function App() {
 
   const handleDelete = async (timestamp, idx) => {
     try {
-      await fetch(`http://localhost:${selectedPort}/message/${timestamp}`, {
-        method: "DELETE",
-      });
+      await fetch(
+        `http://localhost:${selectedPort}/message/${selectedRoomId}/${timestamp}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       // Update frontend
       const updatedMessages = [...messages];
@@ -380,7 +390,7 @@ function App() {
                                 onClick={async () => {
                                   // Update in backend
                                   await fetch(
-                                    `http://localhost:${selectedPort}/message/${msg.timestamp}`,
+                                    `http://localhost:${selectedPort}/message/${selectedRoomId}/${msg.timestamp}`,
                                     {
                                       method: "PUT",
                                       headers: {
@@ -536,6 +546,7 @@ function App() {
             )}
             <div className="flex w-full rounded-full">
               <textarea
+                data-gramm="false"
                 placeholder="Type your messages..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

@@ -9,8 +9,6 @@ const PORT = 5173;
 
 // File paths
 const usersFilePath = "users.json";
-const messagesFilePath = "messages.json";
-
 const ROOMS_FILE = path.join(__dirname, "room.json");
 
 // Utility to read room data
@@ -28,10 +26,6 @@ function saveRooms(rooms) {
 // Ensure files exist
 if (!fs.existsSync(usersFilePath)) {
   fs.writeFileSync(usersFilePath, JSON.stringify([]));
-}
-
-if (!fs.existsSync(messagesFilePath)) {
-  fs.writeFileSync(messagesFilePath, JSON.stringify([]));
 }
 
 app.use(cors());
@@ -97,11 +91,13 @@ app.post("/login", (req, res) => {
   res.status(200).json({ message: "Login successful." });
 });
 
-app.post("/message", (req, res) => {
-  const { text, username, repliedTo, roomId } = req.body;
+app.post("/message/:roomId", (req, res) => {
+  const { roomId } = req.params;
+  const { text, username, repliedTo } = req.body;
 
-  if (!text || !username || !roomId)
-    return res.status(400).json({ error: "Missing data" });
+  if (!text || !username) {
+    return res.status(400).json({ error: "Missing text or username" });
+  }
 
   const rooms = loadRooms();
 
@@ -109,28 +105,30 @@ app.post("/message", (req, res) => {
     return res.status(404).json({ error: "Room not found" });
   }
 
+  // Create the message
   const message = {
     username,
     text,
     timestamp: Date.now(),
-    ...(repliedTo && { repliedTo }),
   };
 
+  // ✅ Add reply info only if it's valid
+  if (
+    repliedTo &&
+    typeof repliedTo === "object" &&
+    repliedTo.username &&
+    repliedTo.text &&
+    repliedTo.timestamp
+  ) {
+    message.repliedTo = repliedTo;
+  }
+
+  // Save message in correct room
   rooms[roomId].messages.push(message);
   saveRooms(rooms);
 
-  res.status(200).json({ message: "Message added" });
+  res.status(200).json({ message: "Message added", messageObject: message });
 });
-
-// app.get("/messages", (req, res) => {
-//   try {
-//     const messages = readDataFromFile(messagesFilePath);
-//     res.json(messages);
-//   } catch (err) {
-//     console.error("Error reading messages:", err);
-//     res.status(500).send("Internal server error");
-//   }
-// });
 
 app.get("/messages/:roomId", (req, res) => {
   const { roomId } = req.params;
@@ -143,62 +141,45 @@ app.get("/messages/:roomId", (req, res) => {
   res.json(rooms[roomId].messages || []);
 });
 
-app.put("/message/:timestamp", (req, res) => {
-  try {
-    const { timestamp } = req.params;
-    const { text } = req.body;
+app.put("/message/:roomId/:timestamp", (req, res) => {
+  const { roomId, timestamp } = req.params;
+  const { text } = req.body;
+  const rooms = loadRooms();
 
-    if (!text || text.trim() === "") {
-      return res
-        .status(400)
-        .send("New text is required to update the message.");
-    }
+  if (!rooms[roomId]) return res.status(404).send("Room not found.");
 
-    const messages = readDataFromFile(messagesFilePath);
+  const messages = rooms[roomId].messages;
+  const index = messages.findIndex(
+    (msg) => msg.timestamp.toString() === timestamp
+  );
 
-    const messageIndex = messages.findIndex(
-      (msg) => msg.timestamp.toString() === timestamp
-    );
+  if (index === -1) return res.status(404).send("Message not found.");
 
-    if (messageIndex === -1) {
-      return res.status(404).send("Message not found.");
-    }
+  messages[index].text = text.trim();
+  messages[index].editedAt = Date.now();
 
-    messages[messageIndex].text = text.trim();
-    messages[messageIndex].editedAt = Date.now(); // optional: add edited timestamp
+  saveRooms(rooms);
 
-    writeDataToFile(messagesFilePath, messages);
-
-    res.status(200).json({ message: "Message updated successfully." });
-  } catch (error) {
-    console.error("Error updating message:", error);
-    res.status(500).send("Internal server error");
-  }
+  res.status(200).json({ message: "Updated successfully." });
 });
 
-app.delete("/message/:timestamp", (req, res) => {
-  try {
-    const { timestamp } = req.params;
+app.delete("/message/:roomId/:timestamp", (req, res) => {
+  const { roomId, timestamp } = req.params;
+  const rooms = loadRooms();
 
-    const messages = readDataFromFile(messagesFilePath);
+  if (!rooms[roomId]) return res.status(404).send("Room not found.");
 
-    const messageIndex = messages.findIndex(
-      (msg) => msg.timestamp.toString() === timestamp
-    );
+  const messages = rooms[roomId].messages;
+  const index = messages.findIndex(
+    (msg) => msg.timestamp.toString() === timestamp
+  );
 
-    if (messageIndex === -1) {
-      return res.status(404).send("Message not found.");
-    }
+  if (index === -1) return res.status(404).send("Message not found.");
 
-    messages.splice(messageIndex, 1); // ✅ Actually delete the message
+  messages.splice(index, 1);
+  saveRooms(rooms);
 
-    writeDataToFile(messagesFilePath, messages);
-
-    res.status(200).json({ message: "Message deleted successfully." });
-  } catch (error) {
-    console.error("Error deleting message:", error);
-    res.status(500).send("Internal server error");
-  }
+  res.status(200).json({ message: "Deleted successfully." });
 });
 
 // Rooom
