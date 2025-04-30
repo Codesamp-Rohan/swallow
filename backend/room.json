@@ -1,0 +1,70 @@
+{
+  "room_660dg5": {
+    "name": "Room-1",
+    "inviteCode": "join-vy0k",
+    "createdAt": 1745994549334,
+    "members": {
+      "Rohan": {
+        "role": "admin",
+        "joinedAt": 1745994549334
+      },
+      "Test": {
+        "role": "member",
+        "joinedAt": 1745995670258
+      }
+    },
+    "messages": [
+      {
+        "username": "Rohan",
+        "text": "Hello everyone.",
+        "timestamp": 1745995321119
+      },
+      {
+        "username": "Rohan",
+        "text": "Hello everyone.",
+        "timestamp": 1745995322141
+      },
+      {
+        "username": "Rohan",
+        "text": "How are you doing?",
+        "timestamp": 1745995327572
+      }
+    ]
+  },
+  "room_vubb5d": {
+    "name": "Room-1",
+    "inviteCode": "join-t9di",
+    "createdAt": 1745994798541,
+    "members": {
+      "Rohan": {
+        "role": "admin",
+        "joinedAt": 1745994798541
+      }
+    },
+    "messages": []
+  },
+  "room_mdqhwh": {
+    "name": "Room-2",
+    "inviteCode": "join-49j5",
+    "createdAt": 1745994832099,
+    "members": {
+      "Rohan": {
+        "role": "admin",
+        "joinedAt": 1745994832099
+      }
+    },
+    "messages": []
+  },
+  "room_8syr2f": {
+    "name": "join-49j5",
+    "inviteCode": "join-8mkv",
+    "createdAt": 1745994866902,
+    "members": {
+      "Test": {
+        "role": "admin",
+        "joinedAt": 1745994866902
+      }
+    },
+    "messages": []
+  }
+}

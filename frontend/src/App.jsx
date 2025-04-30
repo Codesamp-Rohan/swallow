@@ -3,6 +3,8 @@ import send from "./assets/send.png";
 import close from "./assets/close.png";
 import "./App.css";
 import { useState, useEffect } from "react";
+import Members from "../components/Members";
+import Rooms from "../components/Rooms";
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -11,6 +13,9 @@ function App() {
   const [username, setUsername] = useState(
     localStorage.getItem("username") || ""
   );
+
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
+  const [selectedRoomName, setSelectedRoomName] = useState(""); // 🆕
 
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
@@ -35,10 +40,12 @@ function App() {
   }, [showLogin, showSignup]);
 
   useEffect(() => {
+    if (!selectedRoomId) return;
+
     const fetchMessages = async () => {
       try {
         const response = await fetch(
-          `http://localhost:${selectedPort}/messages`
+          `http://localhost:${selectedPort}/messages/${selectedRoomId}`
         );
         const data = await response.json();
         setMessages(data);
@@ -48,11 +55,9 @@ function App() {
     };
 
     fetchMessages();
-
     const interval = setInterval(fetchMessages, 3000);
-
     return () => clearInterval(interval);
-  }, [selectedPort]);
+  }, [selectedPort, selectedRoomId]);
 
   const handleSend = async () => {
     if (input.trim() === "") return;
@@ -74,7 +79,8 @@ function App() {
         },
         body: JSON.stringify({
           text: input.trim(),
-          username: username,
+          username,
+          roomId: selectedRoomId,
           repliedTo: repliedMessageDetails,
         }),
       });
@@ -145,376 +151,405 @@ function App() {
 
   return (
     <>
-      <nav className="w-full mt-[1rem] mb-[1rem] flex justify-between navbar">
-        <div className="flex justify-center items-center">
-          <img src={logo} className="w-[40px] h-[40px]" />
-          <p className="font-bold">Swallow</p>
-        </div>
-        {!username ? (
-          <div className="flex gap-2 text-sm">
-            <button
-              onClick={() => {
-                setShowLogin(true);
-                setShowSignup(false);
-              }}
-              className="px-2 py-1 bg-[#ddd] border border-[#ccc] rounded font-bold"
-            >
-              Log In
-            </button>
-            <button
-              onClick={() => {
-                setShowSignup(true);
-                setShowLogin(false);
-              }}
-              className="px-2 py-1 bg-[#242424] border border-black text-white rounded font-bold"
-            >
-              Sign Up
-            </button>
-          </div>
-        ) : (
-          <div className="relative">
-            <button
-              onClick={() => setShowDropdown(!showDropdown)}
-              className="text-sm font-bold bg-[#eee] px-3 py-1 rounded-full"
-            >
-              👋 Hello, {username}
-            </button>
+      <div id="page">
+        <Rooms
+          username={username}
+          selectedPort={selectedPort}
+          setSelectedRoomId={setSelectedRoomId}
+          setSelectedRoomName={setSelectedRoomName}
+        />
 
-            {showDropdown && (
-              <div className="absolute right-0 mt-2 w-40 rounded-b-md bg-[#ebebeb] border-gray-300 rounded shadow-lg text-sm z-50">
+        <div className="chat--area relative">
+          <nav className="w-full mt-[1rem] mb-[1rem] flex justify-between navbar">
+            <div className="flex justify-center items-center">
+              <img src={logo} className="w-[40px] h-[40px]" />
+              <p className="font-bold">Swallow</p>
+              {selectedRoomName && (
+                <p className="font-bold ml-4">{selectedRoomName}</p>
+              )}
+            </div>
+            {!username ? (
+              <div className="flex gap-2 text-sm">
                 <button
                   onClick={() => {
-                    alert(`Viewing profile of ${username}`);
-                    setShowDropdown(false);
+                    setShowLogin(true);
+                    setShowSignup(false);
                   }}
-                  className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md"
+                  className="px-2 py-1 bg-[#ddd] border border-[#ccc] rounded font-bold"
                 >
-                  View Profile
+                  Log In
                 </button>
                 <button
                   onClick={() => {
-                    localStorage.removeItem("username");
-                    setUsername("");
-                    setShowDropdown(false);
+                    setShowSignup(true);
+                    setShowLogin(false);
                   }}
-                  className="block w-full text-left px-4 py-2 text-red-600 hover:bg-[#dbdbdb] rounded-b-md"
+                  className="px-2 py-1 bg-[#242424] border border-black text-white rounded font-bold"
                 >
-                  Logout
+                  Sign Up
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="text-sm font-bold bg-[#eee] px-3 py-1 rounded-full"
+                >
+                  👋 Hello, {username}
+                </button>
+
+                {showDropdown && (
+                  <div className="absolute right-0 mt-2 w-40 rounded-b-md bg-[#ebebeb] border-gray-300 rounded shadow-lg text-sm z-50">
+                    <button
+                      onClick={() => {
+                        alert(`Viewing profile of ${username}`);
+                        setShowDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md"
+                    >
+                      View Profile
+                    </button>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem("username");
+                        setUsername("");
+                        setShowDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-red-600 hover:bg-[#dbdbdb] rounded-b-md"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </nav>
+
+          {(showLogin || showSignup) && (
+            <div
+              onClick={() => {
+                setShowLogin(false);
+                setShowSignup(false);
+              }}
+              className="overflow"
+            ></div>
+          )}
+
+          {(showLogin || showSignup) && (
+            <div
+              id={showLogin ? "logInPopUp" : "signUpPopUp"}
+              className="text-sm"
+            >
+              <h1 className="text-lg font-bold">
+                {showLogin ? "Log In" : "Sign Up"}
+              </h1>
+              <p>
+                {showLogin
+                  ? "Enter your name and password to login"
+                  : "Create your account"}
+              </p>
+              <div className="flex flex-col gap-3 mt-3">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={authForm.name}
+                  onChange={(e) =>
+                    setAuthForm({ ...authForm, name: e.target.value })
+                  }
+                  className="border p-1 rounded"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={authForm.password}
+                  onChange={(e) =>
+                    setAuthForm({ ...authForm, password: e.target.value })
+                  }
+                  className="border p-1 rounded"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowLogin(false);
+                      setShowSignup(false);
+                    }}
+                    className="flex-1 bg-[#ddd] border border-[#ccc] rounded font-bold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleAuth(showLogin ? "login" : "signup")}
+                    className="flex-1 bg-[#242424] border border-[#000] text-white rounded font-bold"
+                  >
+                    {showLogin ? "Log In" : "Sign Up"}
+                  </button>
+                </div>
+                <p className="text-gray-600">
+                  {showLogin ? (
+                    <>
+                      Don’t have an account?{" "}
+                      <span
+                        className="underline font-bold cursor-pointer"
+                        onClick={() => {
+                          setShowLogin(false);
+                          setShowSignup(true);
+                        }}
+                      >
+                        Sign Up
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      Already have an account?{" "}
+                      <span
+                        className="underline font-bold cursor-pointer"
+                        onClick={() => {
+                          setShowSignup(false);
+                          setShowLogin(true);
+                        }}
+                      >
+                        Log In
+                      </span>
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <main>
+            <div className="relative">
+              <div className="gradient absolute top-0 w-[100%] h-[80px] left-0 z-10 pointer-events-none"></div>
+              <div
+                id="text--area"
+                className="w-full h-full border-0 border-[#ccc] rounded-[24px] flex flex-col overflow-y-scroll relative pt-[3rem] pb-[4rem] pr-4"
+              >
+                {!username ? (
+                  <p>
+                    Please login or signup before seeing or entering a chat 😁
+                  </p>
+                ) : messages.length == 0 ? (
+                  <p className="text-center">No messagess yet.</p>
+                ) : (
+                  messages.map((msg, idx) => {
+                    const previous = messages[idx - 1];
+                    const sameUser =
+                      previous && previous.username === msg.username;
+                    const timeDiff = previous
+                      ? Math.abs(
+                          new Date(msg.timestamp) - new Date(previous.timestamp)
+                        ) / 1000
+                      : Infinity;
+
+                    const showUsername = !(sameUser && timeDiff < 120);
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`mb-1 max-w-[70%] bg-[#ebebeb] text-[#444] text-[14px] message ${
+                          msg.username === username
+                            ? "ml-auto text-right rounded-br-none flex flex-col items-end"
+                            : "mr-auto text-left rounded-bl-none"
+                        }`}
+                      >
+                        {showUsername && (
+                          <strong
+                            className={`text-xs text-[#777] mb-[2px] flex flex-row gap-1 ${
+                              msg.username === username ? "justify-end" : ""
+                            }`}
+                          >
+                            {msg.username}
+                          </strong>
+                        )}
+                        <div
+                          className={`md:w-fit relative group flex ${
+                            msg.username === username
+                              ? "justify-end w-[90vw]"
+                              : "w-[fit-content]"
+                          }`}
+                        >
+                          {editingIdx === idx ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={editingText}
+                                onChange={(e) => setEditingText(e.target.value)}
+                                className="border p-1 rounded text-black text-sm"
+                              />
+                              <button
+                                onClick={async () => {
+                                  // Update in backend
+                                  await fetch(
+                                    `http://localhost:${selectedPort}/message/${msg.timestamp}`,
+                                    {
+                                      method: "PUT",
+                                      headers: {
+                                        "Content-Type": "application/json",
+                                      },
+                                      body: JSON.stringify({
+                                        text: editingText,
+                                      }),
+                                    }
+                                  );
+
+                                  const updatedMessages = [...messages];
+                                  updatedMessages[idx].text = editingText;
+                                  setMessages(updatedMessages);
+
+                                  setEditingIdx(null);
+                                  setEditingText("");
+                                }}
+                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingIdx(null);
+                                  setEditingText("");
+                                }}
+                                className="px-2 py-1 bg-gray-400 text-white text-xs rounded"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div
+                              className={`rounded-lg border-[1px] border-[#ddd] ${
+                                msg.username === username
+                                  ? "bg-gradient-to-r from-[#566bf3] to-[#0044ff]"
+                                  : ""
+                              }`}
+                            >
+                              {msg.repliedTo && (
+                                <div
+                                  className={`p-2 text-xs  items-start mb-1 rounded-t-lg flex flex-col ${
+                                    msg.username === username
+                                      ? "text-[#ebebeb] bg-[#ffffff28]"
+                                      : "text-[#222] bg-[#00000016]"
+                                  }`}
+                                >
+                                  <div className="font-bold flex flex-row gap-2 italic w-full text-[10px]">
+                                    <p>{msg.repliedTo.username}</p>
+                                    {timeAgo(msg.repliedTo.timestamp)}
+                                  </div>
+                                  {msg.repliedTo.text}
+                                </div>
+                              )}
+                              <p
+                                id={msg.timestamp}
+                                className={`singleMessage px-2 w-fit py-1 flex flex-row items-end gap-2 whitespace-pre-wrap text-left rounded-md ${
+                                  msg.username === username
+                                    ? `text-[#ddd]`
+                                    : "text-[#444]"
+                                }`}
+                              >
+                                {msg.text}
+                                <span className="text-[10px] whitespace-nowrap font-bold text-[#bbb]">
+                                  {timeAgo(msg.timestamp)}
+                                </span>
+                              </p>
+                            </div>
+                          )}
+                          <>
+                            <button
+                              onClick={() =>
+                                setActiveDropdownIdx(
+                                  activeDropdownIdx === idx ? null : idx
+                                )
+                              }
+                              className={`md:hidden group-hover:block font-bold absolute top-0 right-2 ${
+                                msg.username === username
+                                  ? "text-[#fff]"
+                                  : "text-[#000]"
+                              }`}
+                            >
+                              ...
+                            </button>
+
+                            {activeDropdownIdx === idx && (
+                              <div
+                                className={`absolute mt-8 w-40 rounded-md bg-[#ebebeb] border-gray-300 shadow-lg text-sm z-50 overflow-hidden text-[12px] font-bold ${
+                                  msg.username === username
+                                    ? "right-0"
+                                    : "left-[90%]"
+                                }`}
+                              >
+                                <button
+                                  onClick={() => setReplyTo(msg)}
+                                  className="block w-full text-left px-4 py-1 hover:bg-[#dbdbdb]"
+                                >
+                                  Reply
+                                </button>
+                                {msg.username === username ? (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        // alert(`Viewing profile of ${username}`);
+                                        setEditingIdx(idx);
+                                        setEditingText(msg.text);
+                                        setActiveDropdownIdx(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-1 hover:bg-[#dbdbdb]"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        handleDelete(msg.timestamp, idx)
+                                      }
+                                      className="block w-full text-left px-4 py-1 hover:bg-[#dbdbdb] text-red-500"
+                                    >
+                                      Delete
+                                    </button>
+                                  </>
+                                ) : null}
+                              </div>
+                            )}
+                          </>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <div className="gradient absolute bottom-0 w-[100%] h-[80px] left-0 z-10 rotate-180 pointer-events-none"></div>
+            </div>
+          </main>
+          <div className="sticky z-[999] mx-[2%] md:mx-0 md:w-[100%] w-[96%] p-1 bottom-4 left-0 flex flex-col items-center mt-4 border-1 border-[#ccc] bg-[#ebebeb] rounded-[12px] writeMsgInput">
+            {replyTo && (
+              <div className="w-full flex flex-col gap-1 bg-[#e2e2e2] py-2 mb-2 px-4 rounded-[12px] relative">
+                <p className="text-[10px] text-[#777]">
+                  <i>Replying to </i>
+                  <strong>{replyTo.username}</strong>
+                </p>
+                <p className="text-[14px] text-[#777] font-bold">
+                  {replyTo.text}
+                </p>
+                <button
+                  onClick={() => setReplyTo(null)}
+                  className="absolute right-4 top-4"
+                >
+                  <img src={close} className="w-[12px] h-[12px]" />
                 </button>
               </div>
             )}
-          </div>
-        )}
-      </nav>
-
-      {(showLogin || showSignup) && (
-        <div
-          onClick={() => {
-            setShowLogin(false);
-            setShowSignup(false);
-          }}
-          className="overflow"
-        ></div>
-      )}
-
-      {(showLogin || showSignup) && (
-        <div id={showLogin ? "logInPopUp" : "signUpPopUp"} className="text-sm">
-          <h1 className="text-lg font-bold">
-            {showLogin ? "Log In" : "Sign Up"}
-          </h1>
-          <p>
-            {showLogin
-              ? "Enter your name and password to login"
-              : "Create your account"}
-          </p>
-          <div className="flex flex-col gap-3 mt-3">
-            <input
-              type="text"
-              placeholder="Name"
-              value={authForm.name}
-              onChange={(e) =>
-                setAuthForm({ ...authForm, name: e.target.value })
-              }
-              className="border p-1 rounded"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={authForm.password}
-              onChange={(e) =>
-                setAuthForm({ ...authForm, password: e.target.value })
-              }
-              className="border p-1 rounded"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setShowLogin(false);
-                  setShowSignup(false);
-                }}
-                className="flex-1 bg-[#ddd] border border-[#ccc] rounded font-bold"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleAuth(showLogin ? "login" : "signup")}
-                className="flex-1 bg-[#242424] border border-[#000] text-white rounded font-bold"
-              >
-                {showLogin ? "Log In" : "Sign Up"}
+            <div className="flex w-full rounded-full">
+              <textarea
+                placeholder="Type your messages..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="flex-1 px-4 py-2 focus:outline-none text-[14px] text-[#777] resize-none rounded-[12px] bg-transparent max-h-[150px] overflow-y-auto"
+                rows={1}
+              />
+              <button onClick={handleSend} className="px-4 py-2 cursor-pointer">
+                <img src={send} className="w-[24px] h-[24px]" />
               </button>
             </div>
-            <p className="text-gray-600">
-              {showLogin ? (
-                <>
-                  Don’t have an account?{" "}
-                  <span
-                    className="underline font-bold cursor-pointer"
-                    onClick={() => {
-                      setShowLogin(false);
-                      setShowSignup(true);
-                    }}
-                  >
-                    Sign Up
-                  </span>
-                </>
-              ) : (
-                <>
-                  Already have an account?{" "}
-                  <span
-                    className="underline font-bold cursor-pointer"
-                    onClick={() => {
-                      setShowSignup(false);
-                      setShowLogin(true);
-                    }}
-                  >
-                    Log In
-                  </span>
-                </>
-              )}
-            </p>
           </div>
         </div>
-      )}
-
-      <main>
-        <div className="relative">
-          <div className="gradient absolute top-0 w-[100%] h-[80px] left-0 z-10 pointer-events-none"></div>
-          <div
-            id="text--area"
-            className="w-full h-full border-0 border-[#ccc] rounded-[24px] flex flex-col overflow-y-scroll relative pt-[3rem] pb-[4rem] pr-4"
-          >
-            {!username ? (
-              <p>Please login or signup before seeing or entering a chat 😁</p>
-            ) : messages.length == 0 ? (
-              <p className="text-center">No messagess yet.</p>
-            ) : (
-              messages.map((msg, idx) => {
-                const previous = messages[idx - 1];
-                const sameUser = previous && previous.username === msg.username;
-                const timeDiff = previous
-                  ? Math.abs(
-                      new Date(msg.timestamp) - new Date(previous.timestamp)
-                    ) / 1000
-                  : Infinity;
-
-                const showUsername = !(sameUser && timeDiff < 120);
-
-                return (
-                  <div
-                    key={idx}
-                    className={`mb-1 max-w-[70%] bg-[#ebebeb] text-[#444] text-[14px] message ${
-                      msg.username === username
-                        ? "ml-auto text-right rounded-br-none flex flex-col items-end"
-                        : "mr-auto text-left rounded-bl-none"
-                    }`}
-                  >
-                    {showUsername && (
-                      <strong
-                        className={`text-xs text-[#777] mb-[2px] flex flex-row gap-1 ${
-                          msg.username === username ? "justify-end" : ""
-                        }`}
-                      >
-                        {msg.username}
-                      </strong>
-                    )}
-                    <div
-                      className={`md:w-fit relative group flex w-[90vw] ${
-                        msg.username === username ? "justify-end" : ""
-                      }`}
-                    >
-                      {editingIdx === idx ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={editingText}
-                            onChange={(e) => setEditingText(e.target.value)}
-                            className="border p-1 rounded text-black text-sm"
-                          />
-                          <button
-                            onClick={async () => {
-                              // Update in backend
-                              await fetch(
-                                `http://localhost:${selectedPort}/message/${msg.timestamp}`,
-                                {
-                                  method: "PUT",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                  },
-                                  body: JSON.stringify({ text: editingText }),
-                                }
-                              );
-
-                              const updatedMessages = [...messages];
-                              updatedMessages[idx].text = editingText;
-                              setMessages(updatedMessages);
-
-                              setEditingIdx(null);
-                              setEditingText("");
-                            }}
-                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingIdx(null);
-                              setEditingText("");
-                            }}
-                            className="px-2 py-1 bg-gray-400 text-white text-xs rounded"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <div
-                          className={`rounded-lg border-[1px] border-[#ddd] ${
-                            msg.username === username
-                              ? "bg-gradient-to-r from-[#566bf3] to-[#0044ff]"
-                              : ""
-                          }`}
-                        >
-                          {msg.repliedTo && (
-                            <div
-                              className={`p-2 text-xs  items-start mb-1 rounded-t-lg flex flex-col ${
-                                msg.username === username
-                                  ? "text-[#ebebeb] bg-[#ffffff28]"
-                                  : "text-[#222] bg-[#00000016]"
-                              }`}
-                            >
-                              <div className="font-bold flex flex-row gap-2 italic w-full text-[10px]">
-                                <p>{msg.repliedTo.username}</p>
-                                {timeAgo(msg.repliedTo.timestamp)}
-                              </div>
-                              {msg.repliedTo.text}
-                            </div>
-                          )}
-                          <p
-                            id={msg.timestamp}
-                            className={`singleMessage px-2 w-fit py-1 flex flex-row items-end gap-2 whitespace-pre-wrap text-left rounded-md ${
-                              msg.username === username ? `text-[#ddd]` : ""
-                            }`}
-                          >
-                            {msg.text}
-                            <span className="text-[10px] whitespace-nowrap font-bold text-[#bbb]">
-                              {timeAgo(msg.timestamp)}
-                            </span>
-                          </p>
-                        </div>
-                      )}
-                      <>
-                        <button
-                          onClick={() =>
-                            setActiveDropdownIdx(
-                              activeDropdownIdx === idx ? null : idx
-                            )
-                          }
-                          className={`md:hidden group-hover:block font-bold absolute top-0 right-2 ${
-                            msg.username === username
-                              ? "text-[#fff]"
-                              : "text-[#000]"
-                          }`}
-                        >
-                          ...
-                        </button>
-
-                        {activeDropdownIdx === idx && (
-                          <div
-                            className={`absolute mt-8 w-40 rounded-md bg-[#ebebeb] border-gray-300 shadow-lg text-sm z-50 overflow-hidden text-[12px] font-bold ${
-                              msg.username === username
-                                ? "right-0"
-                                : "left-[90%]"
-                            }`}
-                          >
-                            <button
-                              onClick={() => setReplyTo(msg)}
-                              className="block w-full text-left px-4 py-1 hover:bg-[#dbdbdb]"
-                            >
-                              Reply
-                            </button>
-                            {msg.username === username ? (
-                              <>
-                                <button
-                                  onClick={() => {
-                                    // alert(`Viewing profile of ${username}`);
-                                    setEditingIdx(idx);
-                                    setEditingText(msg.text);
-                                    setActiveDropdownIdx(null);
-                                  }}
-                                  className="block w-full text-left px-4 py-1 hover:bg-[#dbdbdb]"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleDelete(msg.timestamp, idx)
-                                  }
-                                  className="block w-full text-left px-4 py-1 hover:bg-[#dbdbdb] text-red-500"
-                                >
-                                  Delete
-                                </button>
-                              </>
-                            ) : null}
-                          </div>
-                        )}
-                      </>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-          <div className="gradient absolute bottom-0 w-[100%] h-[80px] left-0 z-10 rotate-180 pointer-events-none"></div>
-        </div>
-      </main>
-      <div className="fixed z-[999] md:mx-[25%] mx-[2%] md:w-[50%] w-[96%] p-1 bottom-4 left-0 flex flex-col items-center mt-4 border-1 border-[#ccc] bg-[#ebebeb] rounded-[12px] writeMsgInput">
-        {replyTo && (
-          <div className="w-full flex flex-col gap-1 bg-[#e2e2e2] py-2 mb-2 px-4 rounded-[12px] relative">
-            <p className="text-[10px] text-[#777]">
-              <i>Replying to </i>
-              <strong>{replyTo.username}</strong>
-            </p>
-            <p className="text-[14px] text-[#777] font-bold">{replyTo.text}</p>
-            <button
-              onClick={() => setReplyTo(null)}
-              className="absolute right-4 top-4"
-            >
-              <img src={close} className="w-[12px] h-[12px]" />
-            </button>
-          </div>
-        )}
-        <div className="flex w-full rounded-full">
-          <textarea
-            placeholder="Type your messages..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="flex-1 px-4 py-2 focus:outline-none text-[14px] text-[#777] resize-none rounded-[12px] bg-transparent max-h-[150px] overflow-y-auto"
-            rows={1}
-          />
-          <button onClick={handleSend} className="px-4 py-2 cursor-pointer">
-            <img src={send} className="w-[24px] h-[24px]" />
-          </button>
-        </div>
+        <Members selectedPort={selectedPort} messages={messages} />
       </div>
     </>
   );

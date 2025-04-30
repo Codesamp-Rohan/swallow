@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
+const path = require("path");
 const CryptoJS = require("crypto-js");
 
 const app = express();
@@ -9,6 +10,20 @@ const PORT = 5173;
 // File paths
 const usersFilePath = "users.json";
 const messagesFilePath = "messages.json";
+
+const ROOMS_FILE = path.join(__dirname, "room.json");
+
+// Utility to read room data
+function loadRooms() {
+  if (!fs.existsSync(ROOMS_FILE)) return {};
+  const data = fs.readFileSync(ROOMS_FILE, "utf-8");
+  return JSON.parse(data || "{}");
+}
+
+// Utility to save room data
+function saveRooms(rooms) {
+  fs.writeFileSync(ROOMS_FILE, JSON.stringify(rooms, null, 2));
+}
 
 // Ensure files exist
 if (!fs.existsSync(usersFilePath)) {
@@ -83,61 +98,49 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/message", (req, res) => {
-  try {
-    const { text, username, repliedTo } = req.body;
+  const { text, username, repliedTo, roomId } = req.body;
 
-    // Validate message text
-    if (!text || text.trim() === "") {
-      return res.status(400).send("Message text required");
-    }
+  if (!text || !username || !roomId)
+    return res.status(400).json({ error: "Missing data" });
 
-    // Validate username
-    if (!username || username.trim() === "") {
-      return res.status(400).send("Username required");
-    }
+  const rooms = loadRooms();
 
-    // If a message is being replied to, validate that the original message exists
-    if (repliedTo) {
-      const messages = readDataFromFile(messagesFilePath);
-      const originalMessageExists = messages.some(
-        (msg) => msg.timestamp === repliedTo.timestamp
-      );
-
-      if (!originalMessageExists) {
-        return res.status(400).send("Invalid repliedTo: message not found");
-      }
-    }
-
-    // Prepare the new message
-    const message = {
-      username: username.trim(),
-      text: text.trim(),
-      timestamp: Date.now(),
-      ...(repliedTo && { repliedTo }), // Include repliedTo if it exists
-    };
-
-    console.log("Saving message:", message);
-
-    // Read existing messages, add the new one, and save back to the file
-    const messages = readDataFromFile(messagesFilePath);
-    messages.push(message);
-    writeDataToFile(messagesFilePath, messages);
-
-    res.status(200).send("Message saved to file");
-  } catch (err) {
-    console.error("Error saving message:", err);
-    res.status(500).send(`Failed to save message: ${err.message}`);
+  if (!rooms[roomId]) {
+    return res.status(404).json({ error: "Room not found" });
   }
+
+  const message = {
+    username,
+    text,
+    timestamp: Date.now(),
+    ...(repliedTo && { repliedTo }),
+  };
+
+  rooms[roomId].messages.push(message);
+  saveRooms(rooms);
+
+  res.status(200).json({ message: "Message added" });
 });
 
-app.get("/messages", (req, res) => {
-  try {
-    const messages = readDataFromFile(messagesFilePath);
-    res.json(messages);
-  } catch (err) {
-    console.error("Error reading messages:", err);
-    res.status(500).send("Internal server error");
+// app.get("/messages", (req, res) => {
+//   try {
+//     const messages = readDataFromFile(messagesFilePath);
+//     res.json(messages);
+//   } catch (err) {
+//     console.error("Error reading messages:", err);
+//     res.status(500).send("Internal server error");
+//   }
+// });
+
+app.get("/messages/:roomId", (req, res) => {
+  const { roomId } = req.params;
+  const rooms = loadRooms();
+
+  if (!rooms[roomId]) {
+    return res.status(404).json({ error: "Room not found" });
   }
+
+  res.json(rooms[roomId].messages || []);
 });
 
 app.put("/message/:timestamp", (req, res) => {
@@ -196,6 +199,80 @@ app.delete("/message/:timestamp", (req, res) => {
     console.error("Error deleting message:", error);
     res.status(500).send("Internal server error");
   }
+});
+
+// Rooom
+app.post("/rooms/create", (req, res) => {
+  const { name, createdBy } = req.body;
+  if (!name || !createdBy) {
+    return res.status(400).json({ error: "Missing name or createdBy" });
+  }
+
+  const rooms = loadRooms();
+
+  const roomId = "room_" + Math.random().toString(36).substring(2, 8);
+  const inviteCode = "join-" + Math.random().toString(36).substring(2, 6);
+
+  rooms[roomId] = {
+    name,
+    inviteCode,
+    createdAt: Date.now(),
+    members: {
+      [createdBy]: { role: "admin", joinedAt: Date.now() },
+    },
+    messages: [],
+  };
+
+  saveRooms(rooms);
+
+  res.json({ roomId, inviteCode, name });
+});
+
+app.post("/rooms/join", (req, res) => {
+  const { inviteCode, username } = req.body;
+  const rooms = loadRooms(); // ✅ Must load rooms here
+
+  const roomEntry = Object.entries(rooms).find(
+    ([, room]) => room.inviteCode === inviteCode
+  );
+
+  if (!roomEntry) {
+    return res.status(404).json({ error: "Room not found" });
+  }
+
+  const [roomId, room] = roomEntry;
+
+  if (!room.members[username]) {
+    room.members[username] = {
+      role: "member",
+      joinedAt: Date.now(),
+    };
+    saveRooms(rooms); // ✅ MUST save updated rooms
+  }
+
+  res.json({ roomId, name: room.name });
+});
+
+app.get("/rooms", (req, res) => {
+  const { user } = req.query;
+  const rooms = loadRooms();
+
+  if (!user) {
+    return res.json({ rooms }); // return all if no user provided
+  }
+
+  const filtered = Object.fromEntries(
+    Object.entries(rooms).filter(
+      ([, room]) => room.members && room.members[user]
+    )
+  );
+
+  return res.json({ rooms: filtered });
+});
+
+// Users detail
+app.get("/users", (req, res) => {
+  res.sendFile(path.join(__dirname, "users.json"));
 });
 
 app.listen(PORT, () => {
