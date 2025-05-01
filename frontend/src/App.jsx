@@ -593,7 +593,11 @@ function App() {
             </>
           )}
         </div>
-        <Members selectedPort={selectedPort} messages={messages} />
+        <Members
+          selectedPort={selectedPort}
+          messages={messages}
+          currentRoom={currentRoom}
+        />
       </div>
     </>
   );
