@@ -6,10 +6,12 @@ const Rooms = ({
   selectedPort = 5173,
   setSelectedRoomId,
   setSelectedRoomName,
+  setCurrentRoom,
 }) => {
   const [roomName, setRoomName] = useState("");
   const [rooms, setRooms] = useState({}); // 🟢 new state to hold rooms
   const [inviteCode, setInviteCode] = useState("");
+  const [activeRoomId, setActiveRoomId] = useState(null);
 
   const handleCreateRoom = async () => {
     if (!roomName.trim()) return alert("Enter a room name");
@@ -80,8 +82,17 @@ const Rooms = ({
     if (username) handleRooms();
   }, [selectedPort, username]);
 
+  // useEffect(() => {
+  //   const fetchRooms = async () => {
+  //     const res = await fetch(`http://localhost:${selectedPort}/rooms`);
+  //     const data = await res.json();
+  //     setRooms(data); // this updates the parent App component
+  //   };
+  //   fetchRooms();
+  // }, []);
+
   return (
-    <div className="w-[15%] p-4 overflow-y-auto">
+    <div className="w-[20%] p-4 overflow-y-auto">
       <h1 className="text-lg font-semibold mb-3 text-[14px] flex items-center gap-4">
         Rooms
       </h1>
@@ -113,7 +124,7 @@ const Rooms = ({
       </button>
 
       {/* 🟢 Room list display */}
-      <div className="space-y-2">
+      <div className="space-y-1">
         {Object.keys(rooms).length === 0 ? (
           <div className="text-sm text-gray-500 italic">
             No rooms joined yet.
@@ -123,14 +134,19 @@ const Rooms = ({
             <div
               key={roomId}
               onClick={() => {
-                setSelectedRoomId(roomId), setSelectedRoomName(room.name);
+                setSelectedRoomId(roomId),
+                  setSelectedRoomName(room.name),
+                  setActiveRoomId(roomId);
+                setCurrentRoom(room);
               }}
-              className="cursor-pointer p-2 border-1 border-[#ccc] rounded"
+              className={`cursor-pointer p-1 rounded ${
+                activeRoomId === roomId
+                  ? "bg-[#ddd] text-[#444]"
+                  : "hover:bg-[#ddd] text-[#777]"
+              }`}
             >
               <p className="font-bold text-[12px]">{room.name}</p>
-              <p className="text-xs text-gray-500 text-[12px]">
-                Invite: {room.inviteCode}
-              </p>
+              <p className="text-xs text-[12px]">Invite: {room.inviteCode}</p>
             </div>
           ))
         )}
