@@ -41,42 +41,24 @@ npm install
 
 follow these steps:
 
-### 1. Start the Chat Server
-
-Navigate to the backend folder and run the Holesail server:
+### 1. Start the Swallow Server
 
 ```bash
-cd backend
-holesail --live 5173 --host localhost
+npm start
 ```
-
-then :
-
-Navigate to the frontend folder and run the Holesail server:
-
-```bash
-cd frontend
-holesail --live <hosting_PORT> --host <local_HOST>
-```
-
-You will get 2 keys which must be shared to others for setting up the connection.
-
-You can also use **--connector** to add custom key
 
 ### 1. Join the Server as Client
 
 Open your terminal and run:
 
 ```bash
-cd backend
-holesail --port 5173 --host localhost <backendKeySentByServer>
+holesail --port 5173 --host localhost server
 ```
 
 then start another terminal and run,
 
 ```bash
-cd frontend
-holesail <frontendKeySentByServer>
+holesail swallow
 ```
 
 You will get a localhost link running, for eg :
