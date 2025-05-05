@@ -2,16 +2,20 @@ import logo from "./assets/logo.png";
 import send from "./assets/send.png";
 import close from "./assets/close.png";
 import edit from "./assets/edit.png";
+import copy from "./assets/copy.png";
 import deleteBtn from "./assets/delete.png";
 import "./App.css";
 import { useState, useEffect } from "react";
 import Members from "../components/Members";
 import Rooms from "../components/Rooms";
+import Profile from "../components/Profile";
+import EditProfile from "../components/EditProfile";
 
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [selectedPort, setSelectedPort] = useState(5173);
+  const [userData, setUserData] = useState([]);
   const [username, setUsername] = useState(
     localStorage.getItem("username") || ""
   );
@@ -33,6 +37,9 @@ function App() {
 
   const [currentRoom, setCurrentRoom] = useState([]);
 
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  console.log(showEditProfile);
+
   // const selectedRoom = currentRoom.find((room) => room.id === selectedRoomId);
   const isAdmin = currentRoom?.members?.[username]?.role === "admin";
   console.log("isAdmin ?   ", isAdmin);
@@ -44,9 +51,10 @@ function App() {
 
   useEffect(() => {
     const body = document.body;
-    body.style.overflow = showLogin || showSignup ? "hidden" : "";
+    body.style.overflow =
+      showLogin || showSignup || showEditProfile ? "hidden" : "";
     return () => (body.style.overflow = "");
-  }, [showLogin, showSignup]);
+  }, [showLogin, showSignup, showEditProfile]);
 
   useEffect(() => {
     if (!selectedRoomId) return;
@@ -150,6 +158,30 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch("http://localhost:5173/users");
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+        const data = await response.json();
+        const currentUser = data.find((user) => user.username === username);
+        if (currentUser) {
+          setUserData(currentUser);
+        } else {
+          console.warn("Current user not found in users.json");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    if (username) {
+      fetchUserData();
+    }
+  }, [username]);
+
   const handleDelete = async (timestamp, idx) => {
     try {
       await fetch(
@@ -168,9 +200,15 @@ function App() {
     }
   };
 
+  console.log(userData);
+
   return (
     <>
       <div id="page">
+        <EditProfile
+          showEditProfile={showEditProfile}
+          setShowEditProfile={setShowEditProfile}
+        />
         <Rooms
           username={username}
           selectedPort={selectedPort}
@@ -179,7 +217,11 @@ function App() {
           setCurrentRoom={setCurrentRoom}
         />
 
-        <div className="chat--area relative">
+        <div
+          className={`chat--area relative ${
+            selectedRoomId ? "w-[50%]" : "w-[100%] px-[5%]"
+          }`}
+        >
           <nav className="w-full mt-[1rem] mb-[1rem] flex justify-between navbar">
             <div className="flex justify-center items-center">
               <img src={logo} className="w-[40px] h-[40px]" />
@@ -228,6 +270,12 @@ function App() {
                       className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md"
                     >
                       View Profile
+                    </button>
+                    <button
+                      onClick={() => setShowEditProfile(true)}
+                      className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md"
+                    >
+                      Edit Profile
                     </button>
                     <button
                       onClick={() => {
@@ -337,7 +385,7 @@ function App() {
             </div>
           )}
 
-          {selectedRoomId && (
+          {selectedRoomId ? (
             <>
               <main>
                 <div className="relative">
@@ -393,14 +441,14 @@ function App() {
                               }`}
                             >
                               {editingIdx === idx ? (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 text-[14px]">
                                   <input
                                     type="text"
                                     value={editingText}
                                     onChange={(e) =>
                                       setEditingText(e.target.value)
                                     }
-                                    className="border p-1 rounded text-black text-sm"
+                                    className="p-1 rounded-md text-[#777] border-1 border-[#ccc]"
                                   />
                                   <button
                                     onClick={async () => {
@@ -425,7 +473,7 @@ function App() {
                                       setEditingIdx(null);
                                       setEditingText("");
                                     }}
-                                    className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
+                                    className="px-2 py-1 bg-[#2a5efc] text-[#ddd] rounded"
                                   >
                                     Save
                                   </button>
@@ -434,7 +482,7 @@ function App() {
                                       setEditingIdx(null);
                                       setEditingText("");
                                     }}
-                                    className="px-2 py-1 bg-gray-400 text-white text-xs rounded"
+                                    className="px-2 py-1 bg-[#bbb] text-[#555] rounded"
                                   >
                                     Cancel
                                   </button>
@@ -510,6 +558,16 @@ function App() {
                                         className="w-[10px] h-[10px]"
                                       />{" "}
                                       Reply
+                                    </button>
+                                    <button
+                                      onClick={() => setReplyTo(msg)}
+                                      className="flex gap-2 items-center w-full text-left px-4 py-1 hover:bg-[#dbdbdb]"
+                                    >
+                                      <img
+                                        src={copy}
+                                        className="w-[10px] h-[10px]"
+                                      />{" "}
+                                      Copy
                                     </button>
                                     {isAdmin || msg.username === username ? (
                                       <>
@@ -591,13 +649,23 @@ function App() {
                 </div>
               </div>
             </>
+          ) : (
+            <div className="container">
+              {/* <h1>Welcome back swallower</h1> */}
+              {/* <p className="subtitle">Worlds' first localhost chatting app.</p> */}
+            </div>
           )}
         </div>
-        <Members
-          selectedPort={selectedPort}
-          messages={messages}
-          currentRoom={currentRoom}
-        />
+        {selectedRoomId ? (
+          <Members
+            selectedPort={selectedPort}
+            messages={messages}
+            currentRoom={currentRoom}
+            selectedRoomId={selectedRoomId}
+          />
+        ) : (
+          <Profile selectedRoomId={selectedRoomId} userData={userData} />
+        )}
       </div>
     </>
   );

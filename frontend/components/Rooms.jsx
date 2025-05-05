@@ -82,17 +82,8 @@ const Rooms = ({
     if (username) handleRooms();
   }, [selectedPort, username]);
 
-  // useEffect(() => {
-  //   const fetchRooms = async () => {
-  //     const res = await fetch(`http://localhost:${selectedPort}/rooms`);
-  //     const data = await res.json();
-  //     setRooms(data); // this updates the parent App component
-  //   };
-  //   fetchRooms();
-  // }, []);
-
   return (
-    <div className="w-[20%] p-4 overflow-y-auto">
+    <div className="w-[20%] max-w-[20%] h-full p-4 overflow-y-auto border-r-[1px] border-r-[#ccc] room--area">
       <h1 className="text-lg font-semibold mb-3 text-[14px] flex items-center gap-4">
         Rooms
       </h1>
@@ -105,7 +96,7 @@ const Rooms = ({
       />
       <button
         onClick={handleCreateRoom}
-        className="w-full bg-blue-500 text-white py-1 text-[12px] rounded mb-4"
+        className="w-full bg-[#1a4ffd] text-white py-1 text-[12px] rounded mb-4"
       >
         Create a new room
       </button>
@@ -145,8 +136,17 @@ const Rooms = ({
                   : "hover:bg-[#ddd] text-[#777]"
               }`}
             >
-              <p className="font-bold text-[12px]">{room.name}</p>
-              <p className="text-xs text-[12px]">Invite: {room.inviteCode}</p>
+              <div className="flex justify-between">
+                <p className="font-bold text-[12px]">{room.name}</p>
+                <p className="text-xs text-[10px]">{room.inviteCode}</p>
+              </div>
+              <p className="text-xs text-[12px] text-[#666] font-semibold line-clamp-1">
+                {room.messages && room.messages.length > 0
+                  ? `${room.messages[room.messages.length - 1].username} : ${
+                      room.messages[room.messages.length - 1].text
+                    }`
+                  : "No messages yet."}
+              </p>
             </div>
           ))
         )}
