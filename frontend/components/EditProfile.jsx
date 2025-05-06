@@ -1,8 +1,7 @@
 import { useState } from "react";
 
-const EditProfile = ({ showEditProfile, setShowEditProfile }) => {
+const EditProfile = ({ showEditProfile, setShowEditProfile, username }) => {
   const [editProfileData, setEditProfileData] = useState({
-    name: "",
     bio: "",
     profileImage: null,
     specializations: [],
@@ -13,6 +12,44 @@ const EditProfile = ({ showEditProfile, setShowEditProfile }) => {
       instagram: "",
     },
   });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("bio", editProfileData.bio);
+    formData.append(
+      "specializations",
+      JSON.stringify(editProfileData.specializations)
+    );
+    formData.append("socialLinks", JSON.stringify(editProfileData.socialLinks));
+    if (editProfileData.profileImage) {
+      formData.append("profileImage", editProfileData.profileImage);
+    }
+
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ": ", pair[1]);
+    }
+
+    try {
+      const response = await fetch("http://localhost:5173/api/updateUser", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert("Profile updated successfully!");
+        setShowEditProfile(false);
+      } else {
+        alert("Failed to update profile.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred while updating profile.");
+    }
+  };
+
   return (
     <div
       className={`fixed top-0 right-0 h-full text-sm w-[30%] z-[999] bg-[#ebebeb] shadow-lg overflow-y-scroll transform ${
@@ -28,31 +65,7 @@ const EditProfile = ({ showEditProfile, setShowEditProfile }) => {
           ✕
         </button>
       </div>
-      <form
-        className="p-4 flex flex-col gap-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          // TODO: Add your update logic here (API call)
-          console.log(editProfileData);
-          setShowEditProfile(false);
-        }}
-      >
-        <div className="w-full">
-          <label className="flex flex-col text-[12px] font-bold text-[#777] mx-2 my-1">
-            Name
-          </label>
-          <input
-            type="text"
-            className="border border-[#ccc] p-1 rounded w-full"
-            value={editProfileData.name}
-            onChange={(e) =>
-              setEditProfileData({
-                ...editProfileData,
-                name: e.target.value,
-              })
-            }
-          />
-        </div>
+      <form className="p-4 flex flex-col gap-4" onSubmit={handleSubmit}>
         <div className="w-full">
           <label className="flex flex-col text-[12px] font-bold text-[#777] mx-2 my-1">
             Bio

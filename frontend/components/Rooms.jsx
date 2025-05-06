@@ -83,7 +83,7 @@ const Rooms = ({
   }, [selectedPort, username]);
 
   return (
-    <div className="w-[20%] max-w-[20%] h-full p-4 overflow-y-auto border-r-[1px] border-r-[#ccc] room--area">
+    <div className="w-[30%] max-w-[30%] h-full p-4 overflow-y-auto border-r-[1px] border-r-[#ccc] room--area">
       <h1 className="text-lg font-semibold mb-3 text-[14px] flex items-center gap-4">
         Rooms
       </h1>
@@ -130,7 +130,7 @@ const Rooms = ({
                   setActiveRoomId(roomId);
                 setCurrentRoom(room);
               }}
-              className={`cursor-pointer p-1 rounded ${
+              className={`cursor-pointer p-2 rounded ${
                 activeRoomId === roomId
                   ? "bg-[#ddd] text-[#444]"
                   : "hover:bg-[#ddd] text-[#777]"
@@ -140,7 +140,7 @@ const Rooms = ({
                 <p className="font-bold text-[12px]">{room.name}</p>
                 <p className="text-xs text-[10px]">{room.inviteCode}</p>
               </div>
-              <p className="text-xs text-[12px] text-[#666] font-semibold line-clamp-1">
+              <p className="text-xs text-[12px] text-[#666] font-semibold line-clamp-2">
                 {room.messages && room.messages.length > 0
                   ? `${room.messages[room.messages.length - 1].username} : ${
                       room.messages[room.messages.length - 1].text

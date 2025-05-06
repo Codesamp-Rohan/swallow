@@ -3,6 +3,7 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const CryptoJS = require("crypto-js");
+const multer = require("multer");
 
 const app = express();
 const PORT = 5173;
@@ -251,9 +252,95 @@ app.get("/rooms", (req, res) => {
   return res.json({ rooms: filtered });
 });
 
+const upload = multer({ dest: "uploads/" });
+
+app.use("/uploads", (req, res, next) => {
+  const filePath = path.join(__dirname, "uploads", req.url);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "File not found" });
+  }
+  next();
+});
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.post("/api/updateUser", upload.single("profileImage"), (req, res) => {
+  const { username, name, bio, specializations, socialLinks } = req.body;
+  const profileImage = req.file; // profile image info (if uploaded)
+
+  // Parse the specializations and socialLinks to proper format
+  const parsedSpecializations = JSON.parse(specializations); // Convert to array
+  const parsedSocialLinks = JSON.parse(socialLinks); // Convert to object
+
+  // Read the existing users data from the users.json file
+  fs.readFile(usersFilePath, "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading users file:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    let users = [];
+    if (data) {
+      try {
+        users = JSON.parse(data); // Parse the existing data from JSON
+      } catch (e) {
+        console.error("Error parsing users data:", e);
+      }
+    }
+
+    // Find existing user or create new user
+    let user = users.find((u) => u.username === username);
+
+    if (!user) {
+      // If user doesn't exist, create a new user object
+      user = {
+        username,
+        name,
+        bio,
+        specializations: parsedSpecializations,
+        socialLinks: parsedSocialLinks,
+        profileImage: profileImage ? profileImage.path : null, // Save path of the uploaded profile image
+      };
+      users.push(user); // Add the new user to the array
+    } else {
+      // If the user exists, update their data
+      user.name = name;
+      user.bio = bio;
+      user.specializations = parsedSpecializations;
+      user.socialLinks = parsedSocialLinks;
+      if (profileImage) {
+        user.profileImage = profileImage.path; // Save path of the uploaded profile image
+      }
+    }
+
+    // Save the updated users array back to the users.json file
+    fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), (err) => {
+      if (err) {
+        console.error("Error writing to users file:", err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+
+      // Respond with success message
+      return res.status(200).json({ message: "Profile updated successfully" });
+    });
+  });
+});
+
 // Users detail
 app.get("/users", (req, res) => {
   res.sendFile(path.join(__dirname, "users.json"));
+});
+
+app.get("/users/:username", (req, res) => {
+  const { username } = req.params;
+  const users = readDataFromFile(usersFilePath);
+
+  const user = users.find((u) => u.username === username);
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  res.json(user);
 });
 
 app.listen(PORT, () => {

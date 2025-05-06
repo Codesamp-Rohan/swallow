@@ -1,20 +1,20 @@
 import { useState } from "react";
 import defaultImg from "../../backend/uploads/default.png";
 
-const Profile = ({ selectedRoomId, currUserData, setShowProfile }) => {
+const OtherProfile = ({ selectedRoomId, userData, setShowOtherProfile }) => {
   const [isClosing, setIsClosing] = useState(false);
 
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
-      setShowProfile(false);
+      setShowOtherProfile(false);
     }, 300);
   };
 
-  console.log(currUserData);
+  console.log(userData);
 
-  const profileImageUrl = currUserData.profileImage
-    ? `http://localhost:5173/${currUserData.profileImage}`
+  const profileImageUrl = userData.profileImage
+    ? `http://localhost:5173/${userData.profileImage}`
     : defaultImg;
 
   return (
@@ -37,15 +37,15 @@ const Profile = ({ selectedRoomId, currUserData, setShowProfile }) => {
       </div>
 
       <h1 className="font-bold text-[#444] text-[20px]">
-        {currUserData.username || currUserData.name}
+        {userData.username || userData.name}
       </h1>
-      <p className="text-center text-[14px] text-[#777]">{currUserData.bio}</p>
+      <p className="text-center text-[14px] text-[#777]">{userData.bio}</p>
 
       <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-[#ccc] w-full">
         <h1 className="font-bold text-[#444] text-[12px]">Specialization</h1>
         <div className="flex gap-2 flex-wrap">
-          {currUserData.specializations?.length > 0 ? (
-            currUserData.specializations.map((skill, index) => (
+          {userData.specializations?.length > 0 ? (
+            userData.specializations.map((skill, index) => (
               <p
                 className="text-[14px] text-[#777] bg-[#ddd] px-2 rounded-md"
                 key={index}
@@ -62,9 +62,9 @@ const Profile = ({ selectedRoomId, currUserData, setShowProfile }) => {
       <div className="flex flex-col gap-2 w-full mt-4 pt-4 border-t border-[#ccc]">
         <h1 className="font-bold text-[#444] text-[12px]">Social Links</h1>
         <div className="flex flex-col gap-2 flex-wrap">
-          {currUserData.socialLinks &&
-          Object.keys(currUserData.socialLinks).length > 0 ? (
-            Object.entries(currUserData.socialLinks).map(
+          {userData.socialLinks &&
+          Object.keys(userData.socialLinks).length > 0 ? (
+            Object.entries(userData.socialLinks).map(
               ([platform, link], index) =>
                 link ? (
                   <p
@@ -91,4 +91,4 @@ const Profile = ({ selectedRoomId, currUserData, setShowProfile }) => {
   );
 };
 
-export default Profile;
+export default OtherProfile;

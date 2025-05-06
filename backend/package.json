@@ -19,6 +19,7 @@
     "hyperbee": "^2.24.2",
     "hypercore": "^11.6.2",
     "hyperdb": "^4.11.0",
+    "multer": "^1.4.5-lts.2",
     "nanoid": "^5.1.5"
   }
 }

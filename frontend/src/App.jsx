@@ -6,22 +6,31 @@ import copy from "./assets/copy.png";
 import deleteBtn from "./assets/delete.png";
 import "./App.css";
 import { useState, useEffect } from "react";
-import Members from "../components/Members";
+import Members from "../components/Members.jsx";
 import Rooms from "../components/Rooms";
 import Profile from "../components/Profile";
 import EditProfile from "../components/EditProfile";
+import defaultImg from "../../backend/uploads/default.png";
+import OtherProfile from "../components/OtherProfile.jsx";
 
 function App() {
+  const [users, setUsers] = useState([]);
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [selectedPort, setSelectedPort] = useState(5173);
   const [userData, setUserData] = useState([]);
+  const [currUserData, setCurrUserData] = useState([]);
+  const [roomMemberData, setRoomMemberData] = useState("");
   const [username, setUsername] = useState(
     localStorage.getItem("username") || ""
   );
 
+  const [showProfile, setShowProfile] = useState(false);
+  const [showOtherProfile, setShowOtherProfile] = useState(false);
+
   const [selectedRoomId, setSelectedRoomId] = useState(null);
-  console.log(selectedRoomId);
+  // console.log(selectedRoomId);
   const [selectedRoomName, setSelectedRoomName] = useState(""); // 🆕
 
   const [showLogin, setShowLogin] = useState(false);
@@ -38,16 +47,28 @@ function App() {
   const [currentRoom, setCurrentRoom] = useState([]);
 
   const [showEditProfile, setShowEditProfile] = useState(false);
-  console.log(showEditProfile);
+  // console.log(showEditProfile);
 
-  // const selectedRoom = currentRoom.find((room) => room.id === selectedRoomId);
   const isAdmin = currentRoom?.members?.[username]?.role === "admin";
-  console.log("isAdmin ?   ", isAdmin);
+  // console.log("isAdmin ?   ", isAdmin);
 
   function timeAgo(timestamp) {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
+
+  const handleCopy = (message) => {
+    console.log(message);
+
+    navigator.clipboard
+      .writeText(message)
+      .then(() => {
+        alert(`${message} copied to clipboard!`);
+      })
+      .catch((err) => {
+        console.error("Failed to copy: ", err);
+      });
+  };
 
   useEffect(() => {
     const body = document.body;
@@ -168,7 +189,7 @@ function App() {
         const data = await response.json();
         const currentUser = data.find((user) => user.username === username);
         if (currentUser) {
-          setUserData(currentUser);
+          setCurrUserData(currentUser);
         } else {
           console.warn("Current user not found in users.json");
         }
@@ -200,7 +221,64 @@ function App() {
     }
   };
 
-  console.log(userData);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch("http://localhost:5173/users");
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+        const data = await response.json();
+        const currentUser = data.find(
+          (user) => user.username === roomMemberData
+        );
+        if (currentUser) {
+          setUserData(currentUser);
+        } else {
+          console.warn("User not found in users.json");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    if (roomMemberData) {
+      fetchUserData();
+    }
+  }, [roomMemberData]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch(`http://localhost:${selectedPort}/users`);
+        const data = await res.json();
+        setUsers(data);
+      } catch (err) {
+        console.error("Failed to load users.json", err);
+      }
+    };
+    fetchUsers();
+  }, [selectedPort]);
+
+  const getUserData = (username) => {
+    if (!users || !Array.isArray(users)) {
+      console.error("Users data is not loaded or invalid.");
+      return defaultImg;
+    }
+
+    const user = users.find((u) => u.username === username);
+
+    if (!user) {
+      console.warn(`User '${username}' not found.`);
+      return defaultImg;
+    }
+
+    const profileImageUrl = user.profileImage
+      ? `http://localhost:${selectedPort}/${user.profileImage}`
+      : defaultImg;
+
+    return profileImageUrl;
+  };
 
   return (
     <>
@@ -208,6 +286,7 @@ function App() {
         <EditProfile
           showEditProfile={showEditProfile}
           setShowEditProfile={setShowEditProfile}
+          username={currUserData.username}
         />
         <Rooms
           username={username}
@@ -264,7 +343,7 @@ function App() {
                   <div className="absolute right-0 mt-2 w-40 rounded-b-md bg-[#ebebeb] border-gray-300 rounded shadow-lg text-sm z-50">
                     <button
                       onClick={() => {
-                        alert(`Viewing profile of ${username}`);
+                        setShowProfile(true);
                         setShowDropdown(false);
                       }}
                       className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md"
@@ -280,6 +359,7 @@ function App() {
                     <button
                       onClick={() => {
                         localStorage.removeItem("username");
+                        window.location.reload();
                         setUsername("");
                         setShowDropdown(false);
                       }}
@@ -425,13 +505,21 @@ function App() {
                             }`}
                           >
                             {showUsername && (
-                              <strong
-                                className={`text-xs text-[#777] mb-[2px] flex flex-row gap-1 ${
-                                  msg.username === username ? "justify-end" : ""
-                                }`}
-                              >
-                                {msg.username}
-                              </strong>
+                              <div className="flex gap-2 items-center">
+                                <img
+                                  src={getUserData(msg.username)}
+                                  className="w-6 h-6"
+                                />
+                                <strong
+                                  className={`text-xs text-[#777] mb-[2px] flex flex-row gap-1 ${
+                                    msg.username === username
+                                      ? "justify-end"
+                                      : ""
+                                  }`}
+                                >
+                                  {msg.username}
+                                </strong>
+                              </div>
                             )}
                             <div
                               className={`md:w-fit relative group flex ${
@@ -560,7 +648,7 @@ function App() {
                                       Reply
                                     </button>
                                     <button
-                                      onClick={() => setReplyTo(msg)}
+                                      onClick={() => handleCopy(msg.text)}
                                       className="flex gap-2 items-center w-full text-left px-4 py-1 hover:bg-[#dbdbdb]"
                                     >
                                       <img
@@ -650,21 +738,32 @@ function App() {
               </div>
             </>
           ) : (
-            <div className="container">
-              {/* <h1>Welcome back swallower</h1> */}
-              {/* <p className="subtitle">Worlds' first localhost chatting app.</p> */}
-            </div>
+            <div className="container"></div>
           )}
         </div>
-        {selectedRoomId ? (
+        {showProfile && (
+          <Profile
+            selectedRoomId={selectedRoomId}
+            currUserData={currUserData}
+            setShowProfile={setShowProfile}
+          />
+        )}
+        {showOtherProfile && (
+          <OtherProfile
+            selectedRoomId={selectedRoomId}
+            userData={userData}
+            setShowOtherProfile={setShowOtherProfile}
+          />
+        )}
+        {selectedRoomId && (
           <Members
             selectedPort={selectedPort}
             messages={messages}
             currentRoom={currentRoom}
             selectedRoomId={selectedRoomId}
+            setRoomMemberData={setRoomMemberData}
+            setShowOtherProfile={setShowOtherProfile}
           />
-        ) : (
-          <Profile selectedRoomId={selectedRoomId} userData={userData} />
         )}
       </div>
     </>
