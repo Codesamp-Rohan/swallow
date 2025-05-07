@@ -5,7 +5,7 @@ import edit from "./assets/edit.png";
 import copy from "./assets/copy.png";
 import deleteBtn from "./assets/delete.png";
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Members from "../components/Members.jsx";
 import Rooms from "../components/Rooms";
 import Profile from "../components/Profile";
@@ -15,6 +15,7 @@ import OtherProfile from "../components/OtherProfile.jsx";
 
 function App() {
   const [users, setUsers] = useState([]);
+  const containerRef = useRef(null);
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -52,23 +53,26 @@ function App() {
   const isAdmin = currentRoom?.members?.[username]?.role === "admin";
   // console.log("isAdmin ?   ", isAdmin);
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const isNearBottom = () => {
+      return (
+        container.scrollHeight - container.scrollTop - container.clientHeight <
+        100
+      );
+    };
+
+    if (isNearBottom()) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages]);
+
   function timeAgo(timestamp) {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
-
-  const handleCopy = (message) => {
-    console.log(message);
-
-    navigator.clipboard
-      .writeText(message)
-      .then(() => {
-        alert(`${message} copied to clipboard!`);
-      })
-      .catch((err) => {
-        console.error("Failed to copy: ", err);
-      });
-  };
 
   useEffect(() => {
     const body = document.body;
@@ -472,6 +476,7 @@ function App() {
                   <div className="gradient absolute top-0 w-[100%] h-[80px] left-0 z-10 pointer-events-none"></div>
                   <div
                     id="text--area"
+                    ref={containerRef}
                     className="w-full h-full border-0 border-[#ccc] rounded-[24px] flex flex-col overflow-y-scroll relative pt-[3rem] pb-[4rem] pr-4"
                   >
                     {!username ? (
@@ -505,10 +510,16 @@ function App() {
                             }`}
                           >
                             {showUsername && (
-                              <div className="flex gap-2 items-center">
+                              <div
+                                className={`flex gap-2 my-2 items-end ${
+                                  msg.username === username
+                                    ? "flex-row-reverse"
+                                    : ""
+                                }`}
+                              >
                                 <img
                                   src={getUserData(msg.username)}
-                                  className="w-6 h-6"
+                                  className="w-6 h-6 rounded-md"
                                 />
                                 <strong
                                   className={`text-xs text-[#777] mb-[2px] flex flex-row gap-1 ${
@@ -588,10 +599,10 @@ function App() {
                                       className={`p-2 text-xs  items-start mb-1 rounded-t-lg flex flex-col ${
                                         msg.username === username
                                           ? "text-[#ebebeb] bg-[#ffffff28]"
-                                          : "text-[#222] bg-[#00000016]"
+                                          : "text-[#444] bg-[#00000016]"
                                       }`}
                                     >
-                                      <div className="font-bold flex flex-row gap-2 italic w-full text-[10px]">
+                                      <div className="font-bold flex flex-row gap-2 italic w-full   text-[10px]">
                                         <p>{msg.repliedTo.username}</p>
                                         {timeAgo(msg.repliedTo.timestamp)}
                                       </div>
@@ -600,7 +611,7 @@ function App() {
                                   )}
                                   <p
                                     id={msg.timestamp}
-                                    className={`singleMessage px-2 w-fit py-1 flex flex-row items-end gap-2 whitespace-pre-wrap text-left rounded-md ${
+                                    className={`singleMessage w-full px-2 w-fit py-1 flex flex-row items-end justify-between gap-2 whitespace-pre-wrap text-left rounded-md ${
                                       msg.username === username
                                         ? `text-[#ddd]`
                                         : "text-[#444]"
@@ -657,23 +668,22 @@ function App() {
                                       />{" "}
                                       Copy
                                     </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingIdx(idx);
+                                        setEditingText(msg.text);
+                                        setActiveDropdownIdx(null);
+                                      }}
+                                      className="flex gap-2 items-center w-full text-left px-4 py-1 hover:bg-[#dbdbdb]"
+                                    >
+                                      <img
+                                        src={edit}
+                                        className="w-[10px] h-[10px]"
+                                      />{" "}
+                                      Edit
+                                    </button>
                                     {isAdmin || msg.username === username ? (
                                       <>
-                                        <button
-                                          onClick={() => {
-                                            // alert(`Viewing profile of ${username}`);
-                                            setEditingIdx(idx);
-                                            setEditingText(msg.text);
-                                            setActiveDropdownIdx(null);
-                                          }}
-                                          className="flex gap-2 items-center w-full text-left px-4 py-1 hover:bg-[#dbdbdb]"
-                                        >
-                                          <img
-                                            src={edit}
-                                            className="w-[10px] h-[10px]"
-                                          />{" "}
-                                          Edit
-                                        </button>
                                         <button
                                           onClick={() =>
                                             handleDelete(msg.timestamp, idx)
@@ -771,3 +781,16 @@ function App() {
 }
 
 export default App;
+
+export const handleCopy = (message) => {
+  console.log(message);
+
+  navigator.clipboard
+    .writeText(message)
+    .then(() => {
+      alert(`${message} copied to clipboard!`);
+    })
+    .catch((err) => {
+      console.error("Failed to copy: ", err);
+    });
+};

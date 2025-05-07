@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import defaultImg from "../../backend/uploads/default.png";
+import { handleCopy } from "../src/App.jsx";
 
 const Members = ({
   selectedPort = 5173,
@@ -56,9 +57,12 @@ const Members = ({
         <h1 className="text-[24px] font-semibold text-[#444]">
           {currentRoom.name}
         </h1>
-        <h1 className="text-[10px] w-fit font-semibold bg-gradient-to-r from-[#566bf3] to-[#0044ff] text-[#ddd] px-2 py-[1px] border-1  border-[#1a4ffd] rounded-xl">
+        <button
+          onClick={() => handleCopy(currentRoom.inviteCode)}
+          className="text-[10px] w-fit font-semibold bg-gradient-to-r from-[#566bf3] to-[#0044ff] text-[#ddd] px-2 py-[1px] border-1  border-[#1a4ffd] rounded-xl"
+        >
           {currentRoom.inviteCode}
-        </h1>
+        </button>
       </div>
       <h1 className="text-lg font-semibold mb-3 text-[14px] flex items-center gap-4">
         Members<p className="text-[12px] text-[#777]">{memberNames.length}</p>
@@ -72,7 +76,7 @@ const Members = ({
               setRoomMemberData(username);
               setShowOtherProfile(true);
             }}
-            className="flex items-center gap-2 w-full border-b-1 border-b-[#ddd] pb-1 mb-1"
+            className="flex items-center gap-2 w-full border-b-1 border-b-[#ddd] pb-2 mb-1"
           >
             <img
               src={getUserData(username)}

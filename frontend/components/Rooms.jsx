@@ -140,7 +140,7 @@ const Rooms = ({
                 <p className="font-bold text-[12px]">{room.name}</p>
                 <p className="text-xs text-[10px]">{room.inviteCode}</p>
               </div>
-              <p className="text-xs text-[12px] text-[#666] font-semibold line-clamp-2">
+              <p className="text-xs text-[12px] text-[#666] font-light line-clamp-2">
                 {room.messages && room.messages.length > 0
                   ? `${room.messages[room.messages.length - 1].username} : ${
                       room.messages[room.messages.length - 1].text
