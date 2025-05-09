@@ -8,7 +8,7 @@ const Members = ({
   selectedRoomId,
   setRoomMemberData,
   setShowOtherProfile,
-}) => {
+}) => {  
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
@@ -49,12 +49,12 @@ const Members = ({
 
   return (
     <div
-      className={`w-[30%] bg-[#ebebeb] h-[100%] p-4 border-l-[1px] border-l-[#ccc] ${
+      className={`w-[30%] h-[100%] p-4 border-l-[0.5px] border-l-[#777] text-[#dd] ${
         selectedRoomId ? "" : "opacity-0 pointer-none:"
       }`}
     >
       <div className="mb-10 flex flex-col justify-between gap-2">
-        <h1 className="text-[24px] font-semibold text-[#444]">
+        <h1 className="text-[24px] font-semibold">
           {currentRoom.name}
         </h1>
         <button
@@ -65,7 +65,7 @@ const Members = ({
         </button>
       </div>
       <h1 className="text-lg font-semibold mb-3 text-[14px] flex items-center gap-4">
-        Members<p className="text-[12px] text-[#777]">{memberNames.length}</p>
+        Members<p className="text-[12px] text-[#bbb]">{memberNames.length}</p>
       </h1>
       {memberNames.length > 0 ? (
         memberNames.map((username, index) => (
@@ -76,19 +76,20 @@ const Members = ({
               setRoomMemberData(username);
               setShowOtherProfile(true);
             }}
-            className="flex items-center gap-2 w-full border-b-1 border-b-[#ddd] pb-2 mb-1"
+            className="flex items-center gap-2 w-full bg-[#00000018] border-b-[0px] border-b-[#777] p-1 mb-1 rounded-lg"
           >
             <img
               src={getUserData(username)}
               alt="profile"
               className="w-8 h-8 rounded-md"
             />
-            <div className="text-[#777] text-[14px] font-bold flex items-center">
+            <div className="text-[#ddd] text-[14px] font-bold flex items-center">
               {username}
               <span className="text-[8px] font-bold ml-2 ring-1 ring-[#bbb] px-1 rounded">
                 {membersObj[username].role}
               </span>
             </div>
+            <p>{membersObj[username].bio}</p>
           </button>
         ))
       ) : (

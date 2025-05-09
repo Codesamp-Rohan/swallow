@@ -1,5 +1,7 @@
 // Rooms.jsx
 import { useState, useEffect } from "react";
+import createBtn from '../src/assets/create.png';
+import joinBtn from '../src/assets/join.png';
 
 const Rooms = ({
   username,
@@ -27,6 +29,7 @@ const Rooms = ({
       if (res.ok) {
         alert(`Room created: ${data.name}\nInvite Code: ${data.inviteCode}`);
         setRoomName("");
+        await handleRooms();
       } else {
         alert(data.error || "Something went wrong");
       }
@@ -65,54 +68,59 @@ const Rooms = ({
     }
   };
 
-  useEffect(() => {
-    const handleRooms = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:${selectedPort}/rooms?user=${username}`
-        );
-        if (!res.ok) throw new Error(`Server error: ${res.status}`);
-        const data = await res.json();
-        setRooms(data.rooms);
-      } catch (error) {
-        console.error("Error fetching rooms:", error);
-      }
-    };
+  const handleRooms = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:${selectedPort}/rooms?user=${username}`
+      );
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+      setRooms(data.rooms);
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
+    }
+  };
 
+  useEffect(() => {
     if (username) handleRooms();
   }, [selectedPort, username]);
 
   return (
-    <div className="w-[30%] max-w-[30%] h-full p-4 overflow-y-auto border-r-[1px] border-r-[#ccc] room--area">
+    <div className="w-[25%] max-w-[25%] h-full p-4 overflow-y-auto border-r-[1px] border-r-[#777] room--area text-[#ddd]">
       <h1 className="text-lg font-semibold mb-3 text-[14px] flex items-center gap-4">
         Rooms
       </h1>
+      <div className="flex gap-1 mb-2">
       <input
         type="text"
         placeholder="Room name"
         value={roomName}
         onChange={(e) => setRoomName(e.target.value)}
-        className="border-1 border-[#bbb] p-1 text-[12px] text-[#777] rounded w-full mb-2"
+        className="border-1 border-[#444] p-1 text-[12px] text-[#777] rounded w-full"
       />
       <button
         onClick={handleCreateRoom}
-        className="w-full bg-[#1a4ffd] text-white py-1 text-[12px] rounded mb-4"
+        className="w-fit bg-[#0000003b] border-1 border-[#444] text-white text-[12px] rounded-[10px] px-2"
       >
-        Create a new room
+        <img src={createBtn} className="w-5 h-4" />
       </button>
+      </div>
+      <div className="flex gap-1 mb-2">
       <input
         type="text"
         placeholder="Invite code"
         value={inviteCode}
         onChange={(e) => setInviteCode(e.target.value)}
-        className="border-1 border-[#bbb] p-1 text-[12px] text-[#777] rounded w-full mb-2"
+        className="border-1 border-[#444] p-1 text-[12px] text-[#777] rounded w-full"
       />
       <button
         onClick={handleJoinRoom}
-        className="w-full bg-[#ccc] border-1 border-[#bbb] text-[#444] py-1 text-[12px] rounded mb-4"
+        className="w-fit bg-[#0000003b] border-1 border-[#444] text-white text-[12px] rounded-[10px] px-2"
       >
-        Join Room
+                <img src={joinBtn} className="w-5 h-4" />
+
       </button>
+      </div>
 
       {/* 🟢 Room list display */}
       <div className="space-y-1">
@@ -130,22 +138,22 @@ const Rooms = ({
                   setActiveRoomId(roomId);
                 setCurrentRoom(room);
               }}
-              className={`cursor-pointer p-2 rounded ${
+              className={`cursor-pointer p-2 rounded-[10px] ${
                 activeRoomId === roomId
-                  ? "bg-[#ddd] text-[#444]"
-                  : "hover:bg-[#ddd] text-[#777]"
+                  ? "bg-[#0000003b] text-[#ddd]"
+                  : "bg-[#00000018] hover:bg-[#0000003b] text-[#ddd]"
               }`}
             >
               <div className="flex justify-between">
                 <p className="font-bold text-[12px]">{room.name}</p>
                 <p className="text-xs text-[10px]">{room.inviteCode}</p>
               </div>
-              <p className="text-xs text-[12px] text-[#666] font-light line-clamp-2">
+              <p className="text-xs text-[12px] text-[#aaa] font-light line-clamp-2">
                 {room.messages && room.messages.length > 0
                   ? `${room.messages[room.messages.length - 1].username} : ${
                       room.messages[room.messages.length - 1].text
                     }`
-                  : "No messages yet."}
+                  : "No rooms yet."}
               </p>
             </div>
           ))

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const EditProfile = ({ showEditProfile, setShowEditProfile, username }) => {
+const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserData }) => {
   const [editProfileData, setEditProfileData] = useState({
     bio: "",
     profileImage: null,
@@ -40,6 +40,7 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username }) => {
 
       if (response.ok) {
         alert("Profile updated successfully!");
+        fetchUserData();
         setShowEditProfile(false);
       } else {
         alert("Failed to update profile.");

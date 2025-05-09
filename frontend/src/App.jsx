@@ -183,25 +183,24 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("http://localhost:5173/users");
-        if (!response.ok) {
-          throw new Error("Failed to fetch user data");
-        }
-        const data = await response.json();
-        const currentUser = data.find((user) => user.username === username);
-        if (currentUser) {
-          setCurrUserData(currentUser);
-        } else {
-          console.warn("Current user not found in users.json");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch("http://localhost:5173/users");
+      if (!response.ok) {
+        throw new Error("Failed to fetch user data");
       }
-    };
-
+      const data = await response.json();
+      const currentUser = data.find((user) => user.username === username);
+      if (currentUser) {
+        setCurrUserData(currentUser);
+      } else {
+        console.warn("Current user not found in users.json");
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+  useEffect(() => {
     if (username) {
       fetchUserData();
     }
@@ -291,6 +290,7 @@ function App() {
           showEditProfile={showEditProfile}
           setShowEditProfile={setShowEditProfile}
           username={currUserData.username}
+          fetchUserData={fetchUserData}
         />
         <Rooms
           username={username}
@@ -313,68 +313,76 @@ function App() {
                 <p className="font-bold ml-4">{selectedRoomName}</p>
               )}
             </div>
-            {!username ? (
-              <div className="flex gap-2 text-sm">
-                <button
-                  onClick={() => {
-                    setShowLogin(true);
-                    setShowSignup(false);
-                  }}
-                  className="px-2 py-1 bg-[#ddd] border border-[#ccc] rounded font-bold"
-                >
-                  Log In
-                </button>
-                <button
-                  onClick={() => {
-                    setShowSignup(true);
-                    setShowLogin(false);
-                  }}
-                  className="px-2 py-1 bg-[#242424] border border-black text-white rounded font-bold"
-                >
-                  Sign Up
-                </button>
-              </div>
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className="text-sm font-bold bg-[#eee] px-3 py-1 rounded-full"
-                >
-                  👋 Hello, {username}
-                </button>
+            <div className="flex gap-0">
+              {!username ? (
+                <div className="flex gap-2 text-sm">
+                  <button
+                    onClick={() => {
+                      setShowLogin(true);
+                      setShowSignup(false);
+                    }}
+                    className="px-2 py-1 bg-[#ddd] border border-[#ccc] rounded font-bold"
+                  >
+                    Log In
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSignup(true);
+                      setShowLogin(false);
+                    }}
+                    className="px-2 py-1 bg-[#242424] border border-black text-white rounded font-bold"
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              ) : (
+                <div className="relative flex gap-2">
+                  <button
+                    onClick={() => setShowDropdown(!showDropdown)}
+                    className="text-sm font-bold bg-[#bbbbbb3b] text-[#ddd] px-3 py-1 rounded-full"
+                  >
+                    👋 Hello, {username}
+                  </button>
 
-                {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-40 rounded-b-md bg-[#ebebeb] border-gray-300 rounded shadow-lg text-sm z-50">
-                    <button
-                      onClick={() => {
-                        setShowProfile(true);
-                        setShowDropdown(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md"
-                    >
-                      View Profile
-                    </button>
-                    <button
-                      onClick={() => setShowEditProfile(true)}
-                      className="block w-full text-left px-4 py-2 hover:bg-[#dbdbdb] rounded-t-md"
-                    >
-                      Edit Profile
-                    </button>
-                    <button
-                      onClick={() => {
-                        localStorage.removeItem("username");
-                        window.location.reload();
-                        setUsername("");
-                        setShowDropdown(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-red-600 hover:bg-[#dbdbdb] rounded-b-md"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+                  {showDropdown && (
+                    <div className="absolute right-10 mt-10 w-40 rounded-b-md bg-[#0000003a] border-gray-300 rounded-lg shadow-lg text-sm z-50">
+                      <button
+                        onClick={() => {
+                          setShowProfile(true);
+                          setShowDropdown(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-[#bbbbbb3b] rounded-t-lg"
+                      >
+                        View Profile
+                      </button>
+                      <button
+                        onClick={() => setShowEditProfile(true)}
+                        className="block w-full text-left px-4 py-2 hover:bg-[#bbbbbb3b]"
+                      >
+                        Edit Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem("username");
+                          window.location.reload();
+                          setUsername("");
+                          setShowDropdown(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-[#bbbbbb3b] rounded-b-lg"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    className="text-sm font-bold bg-[#bbbbbb3b] text-[#ddd] px-3 py-1 rounded-full"
+                    onClick={() => window.location.reload()}
+                  >
+                    Reload
+                  </button>
+                </div>
+              )}
+            </div>
           </nav>
 
           {(showLogin || showSignup) && (
@@ -473,7 +481,7 @@ function App() {
             <>
               <main>
                 <div className="relative">
-                  <div className="gradient absolute top-0 w-[100%] h-[80px] left-0 z-10 pointer-events-none"></div>
+                  {/* <div className="gradient absolute top-0 w-[100%] h-[80px] left-0 z-10 pointer-events-none"></div> */}
                   <div
                     id="text--area"
                     ref={containerRef}
@@ -503,7 +511,7 @@ function App() {
                         return (
                           <div
                             key={idx}
-                            className={`mb-1 max-w-[70%] bg-[#ebebeb] text-[#444] text-[14px] message ${
+                            className={`mb-1 max-w-[70%] text-[#444] text-[14px] message ${
                               msg.username === username
                                 ? "ml-auto text-right rounded-br-none flex flex-col items-end"
                                 : "mr-auto text-left rounded-bl-none"
@@ -522,7 +530,7 @@ function App() {
                                   className="w-6 h-6 rounded-md"
                                 />
                                 <strong
-                                  className={`text-xs text-[#777] mb-[2px] flex flex-row gap-1 ${
+                                  className={`text-xs text-[#bbb] mb-[2px] flex flex-row gap-1 ${
                                     msg.username === username
                                       ? "justify-end"
                                       : ""
@@ -588,7 +596,7 @@ function App() {
                                 </div>
                               ) : (
                                 <div
-                                  className={`rounded-lg border-[1px] border-[#ddd] ${
+                                  className={`rounded-lg ${
                                     msg.username === username
                                       ? "bg-gradient-to-r from-[#566bf3] to-[#0044ff]"
                                       : ""
@@ -602,7 +610,7 @@ function App() {
                                           : "text-[#444] bg-[#00000016]"
                                       }`}
                                     >
-                                      <div className="font-bold flex flex-row gap-2 italic w-full   text-[10px]">
+                                      <div className="font-bold flex flex-row gap-2 italic w-full text-[10px]">
                                         <p>{msg.repliedTo.username}</p>
                                         {timeAgo(msg.repliedTo.timestamp)}
                                       </div>
@@ -707,7 +715,7 @@ function App() {
                       })
                     )}
                   </div>
-                  <div className="gradient absolute bottom-0 w-[100%] h-[80px] left-0 z-10 rotate-180 pointer-events-none"></div>
+                  {/* <div className="gradient absolute bottom-0 w-[100%] h-[80px] left-0 z-10 rotate-180 pointer-events-none"></div> */}
                 </div>
               </main>
               <div className="sticky z-[999] mx-[2%] md:mx-0 md:w-[100%] w-[96%] p-1 bottom-4 left-0 flex flex-col items-center mt-4 border-1 border-[#ccc] bg-[#ebebeb] rounded-[12px] writeMsgInput">
