@@ -53,12 +53,12 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
 
   return (
     <div
-      className={`fixed top-0 right-0 h-full text-sm w-[30%] z-[999] bg-[#ebebeb] shadow-lg overflow-y-scroll transform ${
+      className={`fixed top-0 right-0 h-full text-sm w-[30%] z-[999] bg-[#0000003a] backdrop-blur-[24px] shadow-lg overflow-y-scroll transform border-l-1 border-l-[#777] ${
         showEditProfile ? "translate-x-0" : "translate-x-full"
       } transition-transform duration-300 ease-in-out z-50`}
     >
-      <div className="flex justify-between items-center p-4 border-b border-b-[#ccc]">
-        <h2 className="font-bold">Edit Profile</h2>
+      <div className="flex justify-between items-center p-4 border-b border-b-[#777]">
+        <h2 className="font-bold text-[#bbb]">Edit Profile</h2>
         <button
           onClick={() => setShowEditProfile(false)}
           className="text-gray-500 hover:text-gray-800"
@@ -68,11 +68,11 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
       </div>
       <form className="p-4 flex flex-col gap-4" onSubmit={handleSubmit}>
         <div className="w-full">
-          <label className="flex flex-col text-[12px] font-bold text-[#777] mx-2 my-1">
+          <label className="flex flex-col text-[12px] font-bold text-[#aaa] mx-2 my-1">
             Bio
           </label>
           <textarea
-            className="border border-[#ccc] p-1 rounded w-full"
+            className="border border-[#444] p-1 rounded w-full text-[#bbb]"
             value={editProfileData.bio}
             onChange={(e) =>
               setEditProfileData({
@@ -83,13 +83,13 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
           />
         </div>
         <div className="w-full">
-          <label className="flex flex-col text-[12px] font-bold text-[#777] mx-2 my-1">
+          <label className="flex flex-col text-[12px] font-bold text-[#aaa] mx-2 my-1">
             Profile Image (Max 1MB){" "}
           </label>
           <input
             type="file"
             accept="image/*"
-            className="border border-[#ccc] p-1 rounded w-full"
+            className="border border-[#ccc] p-1 rounded w-full text-[#777]"
             placeholder="Select Img*"
             onChange={(e) => {
               const file = e.target.files[0];
@@ -112,7 +112,7 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
           )}
         </div>
         <div className="w-full">
-          <label className="flex flex-col text-[12px] font-bold text-[#777] mx-2 my-1">
+          <label className="flex flex-col text-[12px] font-bold text-[#aaa] mx-2 my-1">
             Specialization (Max 5, use #tag format)
           </label>
 
@@ -156,11 +156,11 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
             {editProfileData.specializations.map((tag, index) => (
               <div
                 key={index}
-                className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm flex items-center"
+                className="bg-[#0000004d] text-[#ddd] px-2 py-1 rounded-full text-sm flex items-center"
               >
                 {tag}
                 <button
-                  className="ml-2 text-blue-500 hover:text-blue-700"
+                  className="ml-2 text-[#bbb] hover:text-blue-700"
                   onClick={() => {
                     setEditProfileData({
                       ...editProfileData,
@@ -178,7 +178,7 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
         </div>
 
         <div className="w-full flex flex-col gap-2">
-          <label className="flex flex-col text-[12px] font-bold text-[#777] mx-2 my-1">
+          <label className="flex flex-col text-[12px] font-bold text-[#aaa] mx-2">
             Social Links
           </label>
           <input
@@ -244,7 +244,7 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
         </div>
         <button
           type="submit"
-          className="px-4 py-1 text-[14px] bg-[#1a4ffd] text-white rounded mt-4"
+          className="px-4 py-1 text-[14px] bg-[#ffffff3a] hover:bg-[#ffffff18] text-white rounded mt-4"
         >
           Save
         </button>

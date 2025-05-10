@@ -321,7 +321,7 @@ function App() {
                       setShowLogin(true);
                       setShowSignup(false);
                     }}
-                    className="px-2 py-1 bg-[#ddd] border border-[#ccc] rounded font-bold"
+                    className="px-2 py-1 bg-[#ddd] text-[#444] border border-[#ccc] rounded font-bold"
                   >
                     Log In
                   </button>
@@ -345,7 +345,7 @@ function App() {
                   </button>
 
                   {showDropdown && (
-                    <div className="absolute right-10 mt-10 w-40 rounded-b-md bg-[#0000003a] border-gray-300 rounded-lg shadow-lg text-sm z-50">
+                    <div className="absolute right-10 mt-10 w-40 rounded-b-md bg-[#000000df] border-gray-300 rounded-lg shadow-lg text-sm z-50">
                       <button
                         onClick={() => {
                           setShowProfile(true);
@@ -433,18 +433,18 @@ function App() {
                       setShowLogin(false);
                       setShowSignup(false);
                     }}
-                    className="flex-1 bg-[#ddd] border border-[#ccc] rounded font-bold"
+                    className="flex-1 bg-[#777] text-[#ddd] rounded font-bold"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => handleAuth(showLogin ? "login" : "signup")}
-                    className="flex-1 bg-[#242424] border border-[#000] text-white rounded font-bold"
+                    className="flex-1 bg-[#444] text-white rounded font-bold"
                   >
                     {showLogin ? "Log In" : "Sign Up"}
                   </button>
                 </div>
-                <p className="text-gray-600">
+                <p className="text-[#bbb]">
                   {showLogin ? (
                     <>
                       Don’t have an account?{" "}
@@ -599,7 +599,7 @@ function App() {
                                   className={`rounded-lg ${
                                     msg.username === username
                                       ? "bg-gradient-to-r from-[#566bf3] to-[#0044ff]"
-                                      : ""
+                                      : "bg-[#ebebeb]"
                                   }`}
                                 >
                                   {msg.repliedTo && (
@@ -718,7 +718,7 @@ function App() {
                   {/* <div className="gradient absolute bottom-0 w-[100%] h-[80px] left-0 z-10 rotate-180 pointer-events-none"></div> */}
                 </div>
               </main>
-              <div className="sticky z-[999] mx-[2%] md:mx-0 md:w-[100%] w-[96%] p-1 bottom-4 left-0 flex flex-col items-center mt-4 border-1 border-[#ccc] bg-[#ebebeb] rounded-[12px] writeMsgInput">
+              <div className="sticky z-[999] mx-[2%] md:mx-0 md:w-[100%] w-[96%] p-1 bottom-4 left-0 flex flex-col items-center mt-4 border-1 border-[#555] bg-[#0000003a] rounded-[12px] writeMsgInput">
                 {replyTo && (
                   <div className="w-full flex flex-col gap-1 bg-[#e2e2e2] py-2 mb-2 px-4 rounded-[12px] relative">
                     <p className="text-[10px] text-[#777]">
@@ -743,7 +743,7 @@ function App() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="flex-1 px-4 py-2 focus:outline-none text-[14px] text-[#777] resize-none rounded-[12px] bg-transparent max-h-[150px] overflow-y-auto"
+                    className="flex-1 px-4 py-2 focus:outline-none text-[14px] text-[#ddd] resize-none rounded-[12px] bg-transparent max-h-[150px] overflow-y-auto"
                     rows={1}
                   />
                   <button
