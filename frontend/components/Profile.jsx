@@ -47,7 +47,7 @@ const Profile = ({ selectedRoomId, currUserData, setShowProfile }) => {
           {currUserData.specializations?.length > 0 ? (
             currUserData.specializations.map((skill, index) => (
               <p
-                className="text-[14px] text-[#ddd] bg-[#ddd] px-2 rounded-md"
+                className="text-[14px] text-[#ddd] bg-[#0000003a] px-2 rounded-md"
                 key={index}
               >
                 {skill}
@@ -68,7 +68,7 @@ const Profile = ({ selectedRoomId, currUserData, setShowProfile }) => {
               ([platform, link], index) =>
                 link ? (
                   <p
-                    className="text-[14px] text-[#777] bg-[#ddd] px-2 py-1 rounded-md"
+                    className="text-[14px] text-[#bbb] bg-[#0000003a] px-2 py-1 rounded-md"
                     key={index}
                   >
                     <a
@@ -80,10 +80,11 @@ const Profile = ({ selectedRoomId, currUserData, setShowProfile }) => {
                       {platform.charAt(0).toUpperCase() + platform.slice(1)}
                     </a>
                   </p>
-                ) : 
-                <p className="text-[14px] text-[#bbb]">No social links added</p>
+                ) : null
             )
-          ) : ''}
+          ) : (
+            <p className="text-[14px] text-[#bbb]">No social links added</p>
+          )}
         </div>
       </div>
     </div>

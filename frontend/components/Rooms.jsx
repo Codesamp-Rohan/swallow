@@ -86,7 +86,7 @@ const Rooms = ({
   }, [selectedPort, username]);
 
   return (
-    <div className="w-[25%] max-w-[25%] h-full p-4 overflow-y-auto border-r-[1px] border-r-[#777] room--area text-[#ddd]">
+    <div className="w-[25%] max-w-[25%] h-full p-4 overflow-y-auto border-r-[1px] border-r-[#444] room--area text-[#ddd]">
       <h1 className="text-lg font-semibold mb-3 text-[14px] flex items-center gap-4">
         Rooms
       </h1>
@@ -140,8 +140,8 @@ const Rooms = ({
               }}
               className={`cursor-pointer p-2 rounded-[10px] ${
                 activeRoomId === roomId
-                  ? "bg-[#0000003b] text-[#ddd]"
-                  : "bg-[#00000018] hover:bg-[#0000003b] text-[#ddd]"
+                  ? "bg-[#77777718] text-[#ddd]"
+                  : "bg-[#00000018] hover:bg-[#77777718] text-[#ddd]"
               }`}
             >
               <div className="flex justify-between">

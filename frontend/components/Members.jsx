@@ -49,7 +49,7 @@ const Members = ({
 
   return (
     <div
-      className={`w-[30%] h-[100%] p-4 border-l-[0.5px] border-l-[#777] text-[#dd] ${
+      className={`w-[30%] h-[100%] p-4 border-l-[0.5px] border-l-[#444] text-[#dd] ${
         selectedRoomId ? "" : "opacity-0 pointer-none:"
       }`}
     >

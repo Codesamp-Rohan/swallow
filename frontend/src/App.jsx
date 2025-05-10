@@ -4,6 +4,7 @@ import close from "./assets/close.png";
 import edit from "./assets/edit.png";
 import copy from "./assets/copy.png";
 import deleteBtn from "./assets/delete.png";
+import reloadImg from "./assets/reload.png";
 import "./App.css";
 import { useState, useEffect, useRef } from "react";
 import Members from "../components/Members.jsx";
@@ -375,10 +376,10 @@ function App() {
                     </div>
                   )}
                   <button
-                    className="text-sm font-bold bg-[#bbbbbb3b] text-[#ddd] px-3 py-1 rounded-full"
+                    className="text-sm font-bold bg-[#bbbbbb3b] flex items-center gap-1 text-[#ddd] px-3 py-1 rounded-full"
                     onClick={() => window.location.reload()}
                   >
-                    Reload
+                    <img src={reloadImg} className="w-4 h-4"/> Reload
                   </button>
                 </div>
               )}
