@@ -1,17 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserData }) => {
   const [editProfileData, setEditProfileData] = useState({
     bio: "",
     profileImage: null,
     specializations: [],
-    socialLinks: {
-      facebook: "",
-      twitter: "",
-      linkedin: "",
-      instagram: "",
-    },
+    socialLinks: [],
   });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`http://localhost:5173/api/getUser?username=${username}`);
+        if (!response.ok) {
+          console.error("User not found");
+          return;
+        }
+
+        const data = await response.json();
+
+        const socialLinks = Array.isArray(data.socialLinks)
+          ? data.socialLinks
+          : Object.entries(data.socialLinks || {}).map(([platform, url]) => ({ platform, url }));
+
+        setEditProfileData({
+          bio: data.bio || "",
+          profileImage: null, // Never prefill <input type="file" />
+          specializations: data.specializations || [],
+          socialLinks,
+        });
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    if (username) fetchProfile();
+  }, [username]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,10 +50,6 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
     formData.append("socialLinks", JSON.stringify(editProfileData.socialLinks));
     if (editProfileData.profileImage) {
       formData.append("profileImage", editProfileData.profileImage);
-    }
-
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ": ", pair[1]);
     }
 
     try {
@@ -66,7 +86,9 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
           ✕
         </button>
       </div>
+
       <form className="p-4 flex flex-col gap-4" onSubmit={handleSubmit}>
+        {/* Bio */}
         <div className="w-full">
           <label className="flex flex-col text-[12px] font-bold text-[#aaa] mx-2 my-1">
             Bio
@@ -82,15 +104,16 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
             }
           />
         </div>
+
+        {/* Profile Image */}
         <div className="w-full">
           <label className="flex flex-col text-[12px] font-bold text-[#aaa] mx-2 my-1">
-            Profile Image (Max 1MB){" "}
+            Profile Image (Max 1MB)
           </label>
           <input
             type="file"
             accept="image/*"
             className="border border-[#ccc] p-1 rounded w-full text-[#777]"
-            placeholder="Select Img*"
             onChange={(e) => {
               const file = e.target.files[0];
               if (file && file.size <= 1048576) {
@@ -111,11 +134,12 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
             />
           )}
         </div>
+
+        {/* Specializations */}
         <div className="w-full">
           <label className="flex flex-col text-[12px] font-bold text-[#aaa] mx-2 my-1">
             Specialization (Max 5, use #tag format)
           </label>
-
           <input
             type="text"
             className="border border-[#ccc] p-1 rounded w-full"
@@ -151,7 +175,6 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
               }
             }}
           />
-
           <div className="flex flex-wrap gap-2 mt-2">
             {editProfileData.specializations.map((tag, index) => (
               <div
@@ -177,71 +200,64 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
           </div>
         </div>
 
+        {/* Social Links (dynamic) */}
         <div className="w-full flex flex-col gap-2">
           <label className="flex flex-col text-[12px] font-bold text-[#aaa] mx-2">
             Social Links
           </label>
-          <input
-            type="text"
-            className="border border-[#ccc] p-1 rounded w-full"
-            placeholder="Facebook URL"
-            value={editProfileData.socialLinks.facebook}
-            onChange={(e) =>
+
+          {editProfileData.socialLinks.map((link, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <input
+                type="text"
+                className="border border-[#ccc] p-1 rounded w-[40%]"
+                placeholder="Platform (e.g., Twitter)"
+                value={link.platform}
+                onChange={(e) => {
+                  const newLinks = [...editProfileData.socialLinks];
+                  newLinks[index].platform = e.target.value;
+                  setEditProfileData({ ...editProfileData, socialLinks: newLinks });
+                }}
+              />
+              <input
+                type="text"
+                className="border border-[#ccc] p-1 rounded w-full"
+                placeholder="URL"
+                value={link.url}
+                onChange={(e) => {
+                  const newLinks = [...editProfileData.socialLinks];
+                  newLinks[index].url = e.target.value;
+                  setEditProfileData({ ...editProfileData, socialLinks: newLinks });
+                }}
+              />
+              <button
+                type="button"
+                className="text-red-500 hover:text-red-700"
+                onClick={() => {
+                  const newLinks = editProfileData.socialLinks.filter((_, i) => i !== index);
+                  setEditProfileData({ ...editProfileData, socialLinks: newLinks });
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            className="mt-2 px-2 py-1 bg-[#333] text-white rounded text-sm self-start"
+            onClick={() => {
               setEditProfileData({
                 ...editProfileData,
-                socialLinks: {
-                  ...editProfileData.socialLinks,
-                  facebook: e.target.value,
-                },
-              })
-            }
-          />
-          <input
-            type="text"
-            className="border border-[#ccc] p-1 rounded w-full"
-            placeholder="Twitter URL"
-            value={editProfileData.socialLinks.twitter}
-            onChange={(e) =>
-              setEditProfileData({
-                ...editProfileData,
-                socialLinks: {
-                  ...editProfileData.socialLinks,
-                  twitter: e.target.value,
-                },
-              })
-            }
-          />
-          <input
-            type="text"
-            className="border border-[#ccc] p-1 rounded w-full"
-            placeholder="LinkedIn URL"
-            value={editProfileData.socialLinks.linkedin}
-            onChange={(e) =>
-              setEditProfileData({
-                ...editProfileData,
-                socialLinks: {
-                  ...editProfileData.socialLinks,
-                  linkedin: e.target.value,
-                },
-              })
-            }
-          />
-          <input
-            type="text"
-            className="border border-[#ccc] p-1 rounded w-full"
-            placeholder="Instagram URL"
-            value={editProfileData.socialLinks.instagram}
-            onChange={(e) =>
-              setEditProfileData({
-                ...editProfileData,
-                socialLinks: {
-                  ...editProfileData.socialLinks,
-                  instagram: e.target.value,
-                },
-              })
-            }
-          />
+                socialLinks: [...editProfileData.socialLinks, { platform: "", url: "" }],
+              });
+            }}
+          >
+            + Add Social Link
+          </button>
         </div>
+
+        {/* Submit Button */}
         <button
           type="submit"
           className="px-4 py-1 text-[14px] bg-[#ffffff3a] hover:bg-[#ffffff18] text-white rounded mt-4"

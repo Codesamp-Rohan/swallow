@@ -528,7 +528,7 @@ function App() {
                               >
                                 <img
                                   src={getUserData(msg.username)}
-                                  className="w-6 h-6 rounded-md"
+                                  className="w-10 h-10 rounded-md bg-[#777777]"
                                 />
                                 <strong
                                   className={`text-xs text-[#bbb] mb-[2px] flex flex-row gap-1 ${
@@ -677,7 +677,9 @@ function App() {
                                       />{" "}
                                       Copy
                                     </button>
-                                    <button
+                                    {isAdmin || msg.username === username ? (
+                                      <>
+                                      <button
                                       onClick={() => {
                                         setEditingIdx(idx);
                                         setEditingText(msg.text);
@@ -691,8 +693,6 @@ function App() {
                                       />{" "}
                                       Edit
                                     </button>
-                                    {isAdmin || msg.username === username ? (
-                                      <>
                                         <button
                                           onClick={() =>
                                             handleDelete(msg.timestamp, idx)

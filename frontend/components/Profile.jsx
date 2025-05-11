@@ -62,30 +62,29 @@ const Profile = ({ selectedRoomId, currUserData, setShowProfile }) => {
       <div className="flex flex-col gap-2 w-full mt-4 pt-4 border-t border-[#777]">
         <h1 className="font-bold text-[#bbb] text-[12px]">Social Links</h1>
         <div className="flex flex-col gap-2 flex-wrap">
-          {currUserData.socialLinks &&
-          Object.keys(currUserData.socialLinks).length > 0 ? (
-            Object.entries(currUserData.socialLinks).map(
-              ([platform, link], index) =>
-                link ? (
-                  <p
-                    className="text-[14px] text-[#bbb] bg-[#0000003a] px-2 py-1 rounded-md"
-                    key={index}
-                  >
-                    <a
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline"
-                    >
-                      {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                    </a>
-                  </p>
-                ) : null
-            )
-          ) : (
-            <p className="text-[14px] text-[#bbb]">No social links added</p>
-          )}
-        </div>
+  {Array.isArray(currUserData.socialLinks) && currUserData.socialLinks.length > 0 ? (
+    currUserData.socialLinks.map((link, index) =>
+      link?.url ? (
+        <p
+          className="text-[14px] text-[#bbb] bg-[#0000003a] px-2 py-1 rounded-md"
+          key={index}
+        >
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            {link.url}
+          </a>
+        </p>
+      ) : null
+    )
+  ) : (
+    <p className="text-[14px] text-[#bbb]">No social links added</p>
+  )}
+</div>
+
       </div>
     </div>
   );

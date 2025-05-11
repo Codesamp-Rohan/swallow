@@ -19,9 +19,31 @@ function loadRooms() {
   return JSON.parse(data || "{}");
 }
 
+
+function readUsers() {
+  try {
+    const filePath = path.join(__dirname, "users.json");
+    if (!fs.existsSync(filePath)) return [];
+    const data = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(data || "[]");
+  } catch (err) {
+    console.error("Failed to read users.json:", err);
+    return [];
+  }
+}
+
+
 // Utility to save room data
 function saveRooms(rooms) {
   fs.writeFileSync(ROOMS_FILE, JSON.stringify(rooms, null, 2));
+}
+
+function readRooms() {
+  return JSON.parse(fs.readFileSync(ROOMS_FILE, 'utf-8'));
+}
+
+function writeRooms(data) {
+  fs.writeFileSync(ROOMS_FILE, JSON.stringify(data, null, 2));
 }
 
 // Ensure files exist
@@ -235,6 +257,57 @@ app.post("/rooms/join", (req, res) => {
   res.json({ roomId, name: room.name });
 });
 
+app.post('/rooms/leave', (req, res) => {
+  try {
+    const { roomId, username } = req.body;
+    if (!roomId || !username) {
+      return res.status(400).json({ error: 'roomId and username are required.' });
+    }
+
+    const rooms = readRooms();
+
+    if (!rooms[roomId]) {
+      return res.status(404).json({ error: 'Room not found.' });
+    }
+
+    const room = rooms[roomId];
+
+    if (!room.members || !room.members[username]) {
+      return res.status(400).json({ error: 'User is not a member of this room.' });
+    }
+
+    const isAdminLeaving = room.createdBy === username;
+
+    delete room.members[username];
+
+    // 🔁 Assign a new admin if the current admin is leaving
+    if (isAdminLeaving) {
+      const remainingMembers = Object.keys(room.members);
+
+      if (remainingMembers.length > 0) {
+        const [newAdminUsername] = remainingMembers.sort(
+          ([, a], [, b]) => a.joinedAt - b.joinedAt
+        )[0];
+        room.members[newAdminUsername].role = "admin";
+        console.log(`Admin ${username} left. New admin is ${room.createdBy}`);
+      } else {
+        // No members left — delete the room
+        delete rooms[roomId];
+        writeRooms(rooms);
+        return res.json({ success: true, name: room.name, message: "Room deleted as no members were left." });
+      }
+    }
+
+    writeRooms(rooms);
+
+    return res.json({ success: true, name: room.name, message: isAdminLeaving ? `New admin is ${room.createdBy}` : undefined });
+
+  } catch (err) {
+    console.error("Error in /rooms/leave:", err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get("/rooms", (req, res) => {
   const { user } = req.query;
   const rooms = loadRooms();
@@ -261,7 +334,26 @@ app.use("/uploads", (req, res, next) => {
   }
   next();
 });
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.get("/api/getUser", (req, res) => {
+  const { username } = req.query;
+  if (!username) return res.status(400).json({ error: "Username is required" });
+
+  try {
+    const users = readUsers(); // Reads from users.json
+    const user = users.find(u => u.username === username);
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const { password, ...safeUser } = user;
+    res.json(safeUser);
+  } catch (err) {
+    console.error("GET /api/getUser error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 app.post("/api/updateUser", upload.single("profileImage"), (req, res) => {
   const { username, name, bio, specializations, socialLinks } = req.body;

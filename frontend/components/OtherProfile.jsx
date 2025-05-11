@@ -10,8 +10,7 @@ const OtherProfile = ({ selectedRoomId, userData, setShowOtherProfile }) => {
       setShowOtherProfile(false);
     }, 300);
   };
-
-  console.log(userData);
+  // console.log(userData);
 
   const profileImageUrl = userData.profileImage
     ? `http://localhost:5173/${userData.profileImage}`
