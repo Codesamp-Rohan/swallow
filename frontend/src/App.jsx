@@ -20,7 +20,7 @@ function App() {
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [selectedPort, setSelectedPort] = useState(5173);
+  const [selectedPort, setSelectedPort] = useState(5174);
   const [userData, setUserData] = useState([]);
   const [currUserData, setCurrUserData] = useState([]);
   const [roomMemberData, setRoomMemberData] = useState("");
@@ -186,7 +186,7 @@ function App() {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch("http://localhost:5173/users");
+      const response = await fetch("http://localhost:5174/users");
       if (!response.ok) {
         throw new Error("Failed to fetch user data");
       }
@@ -228,7 +228,7 @@ function App() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch("http://localhost:5173/users");
+        const response = await fetch("http://localhost:5174/users");
         if (!response.ok) {
           throw new Error("Failed to fetch user data");
         }
@@ -309,7 +309,7 @@ function App() {
           <nav className="w-full mt-[1rem] mb-[1rem] flex justify-between navbar">
             <div className="flex justify-center items-center">
               <img src={logo} className="w-[40px] h-[40px]" />
-              <p className="font-bold">Swallow</p>
+              <p className="font-bold">Tappy</p>
               {selectedRoomName && (
                 <p className="font-bold ml-4">{selectedRoomName}</p>
               )}

@@ -19,7 +19,7 @@ const Profile = ({ selectedRoomId, currUserData, setShowProfile }) => {
 
   return (
     <div
-      className={`w-[25%] fixed top-0 right-0 z-50 bg-[#0000003a] backdrop-blur-[24px] h-full p-6 border-l border-[#777] flex flex-col items-center transition-transform duration-300 ${
+      className={`w-[25%] fixed top-0 right-0 z-50 bg-[#000000] backdrop-blur-[100px] h-full p-6 border-l border-[#777] flex flex-col items-center transition-transform duration-300 ${
         isClosing ? "translate-x-full" : "translate-x-0"
       }`}
     >

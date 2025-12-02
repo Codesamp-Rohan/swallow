@@ -6,7 +6,7 @@ const CryptoJS = require("crypto-js");
 const multer = require("multer");
 
 const app = express();
-const PORT = 5173;
+const PORT = 5174;
 
 // File paths
 const usersFilePath = "users.json";

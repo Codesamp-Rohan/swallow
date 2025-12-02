@@ -73,7 +73,7 @@ const EditProfile = ({ showEditProfile, setShowEditProfile, username, fetchUserD
 
   return (
     <div
-      className={`fixed top-0 right-0 h-full text-sm w-[30%] z-[999] bg-[#0000003a] backdrop-blur-[24px] shadow-lg overflow-y-scroll transform border-l-1 border-l-[#777] ${
+      className={`fixed top-0 right-0 h-full text-sm w-[30%] z-[999] bg-[#000000] backdrop-blur-[24px] shadow-lg overflow-y-scroll transform border-l-1 border-l-[#777] ${
         showEditProfile ? "translate-x-0" : "translate-x-full"
       } transition-transform duration-300 ease-in-out z-50`}
     >

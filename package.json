@@ -15,5 +15,8 @@
         "prettier": "^3.5.3"
     },
     "author": "",
-    "license": "ISC"
+    "license": "ISC",
+    "dependencies": {
+        "holesail": "^2.3.1"
+    }
 }
